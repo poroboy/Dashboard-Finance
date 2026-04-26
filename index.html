@@ -14,15 +14,19 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"/>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Kanit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{--outer-bg:#090d16;--outer-surface:#111827;--outer-card:#1a2235;--outer-border:#2a3650;--outer-accent:#ffc857;--outer-green:#00e5a0;--outer-text:#e8edf5;--outer-muted:#7b89a8;--outer-font:'IBM Plex Sans Thai','Kanit',sans-serif;--outer-mono:'Space Mono',monospace;}
 html,body{min-height:100%;background:var(--outer-bg);color:var(--outer-text);font-family:var(--outer-font);}body{overflow:hidden;}.shell{height:100vh;display:flex;flex-direction:column;}
-.topbar{flex:0 0 auto;background:linear-gradient(180deg,#121a2a 0%,#0d1320 100%);border-bottom:1px solid var(--outer-border);padding:10px 12px;position:relative;z-index:10;}.topbar-inner{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:12px;}.brand{flex:1;min-width:0;}.brand-tag{font-family:var(--outer-mono);font-size:10px;letter-spacing:.8px;color:var(--outer-accent);margin-bottom:1px;}.brand-title{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.nav{display:flex;gap:6px;background:#090d16;border:1px solid var(--outer-border);border-radius:12px;padding:5px;}.nav-btn{border:none;border-radius:9px;padding:9px 12px;background:transparent;color:var(--outer-muted);cursor:pointer;font-family:var(--outer-font);font-size:13px;font-weight:600;transition:all .18s ease;white-space:nowrap;}.nav-btn.active{background:var(--outer-accent);color:#0d1117;box-shadow:0 0 0 1px #ffc85755 inset;}.nav-btn.lineman.active{background:#ffd60a;color:#0a0e1a;}.frame-wrap{flex:1 1 auto;min-height:0;position:relative;background:var(--outer-bg);}iframe{position:absolute;inset:0;width:100%;height:100%;border:none;background:transparent;}.hint{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);background:#111827e6;border:1px solid var(--outer-border);color:var(--outer-muted);padding:6px 10px;border-radius:999px;font-size:10px;pointer-events:none;backdrop-filter:blur(8px);z-index:20;}@media(max-width:560px){.topbar-inner{flex-direction:column;align-items:stretch;gap:8px;}.brand{text-align:center;}.brand-title{font-size:16px;}.nav{width:100%;}.nav-btn{flex:1;padding:9px 6px;font-size:12px;}.hint{display:none;}}
+.topbar{flex:0 0 auto;background:linear-gradient(180deg,#121a2a 0%,#0d1320 100%);border-bottom:1px solid var(--outer-border);padding:10px 12px;position:relative;z-index:10;}.topbar-inner{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:12px;}.brand{flex:1;min-width:0;}.brand-tag{font-family:var(--outer-mono);font-size:10px;letter-spacing:.8px;color:var(--outer-accent);margin-bottom:1px;}.brand-title{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.nav{display:flex;gap:6px;background:#090d16;border:1px solid var(--outer-border);border-radius:12px;padding:5px;}.nav-btn{border:none;border-radius:9px;padding:9px 12px;background:transparent;color:var(--outer-muted);cursor:pointer;font-family:var(--outer-font);font-size:13px;font-weight:600;transition:all .18s ease;white-space:nowrap;}.nav-btn.active{background:var(--outer-accent);color:#0d1117;box-shadow:0 0 0 1px #ffc85755 inset;}.nav-btn.lineman.active{background:#ffd60a;color:#0a0e1a;}.frame-wrap{flex:1 1 auto;min-height:0;position:relative;background:var(--outer-bg);}iframe{position:absolute;inset:0;width:100%;height:100%;border:none;background:transparent;}.sync{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}.sync-status{font-size:10px;color:var(--outer-muted);max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sync-btn{border:1px solid var(--outer-border);border-radius:9px;background:#090d16;color:var(--outer-text);padding:8px 10px;font-family:var(--outer-font);font-size:12px;font-weight:700;cursor:pointer}.sync-btn.primary{background:var(--outer-green);border-color:var(--outer-green);color:#07120f}.sync-btn.danger{color:#ff6b86}.hint{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);background:#111827e6;border:1px solid var(--outer-border);color:var(--outer-muted);padding:6px 10px;border-radius:999px;font-size:10px;pointer-events:none;backdrop-filter:blur(8px);z-index:20;}@media(max-width:560px){.topbar-inner{flex-direction:column;align-items:stretch;gap:8px;}.brand{text-align:center;}.brand-title{font-size:16px;}.nav{width:100%;}.nav-btn{flex:1;padding:9px 6px;font-size:12px;}.sync{justify-content:center}.sync-status{max-width:220px}.hint{display:none;}}
 </style>
 </head>
 <body>
-<div class="shell"><header class="topbar"><div class="topbar-inner"><div class="brand"><div class="brand-tag">ALL-IN-ONE DASHBOARD</div><div class="brand-title" id="pageTitle">วางแผนการเงิน</div></div><nav class="nav" aria-label="Dashboard navigation"><button class="nav-btn active" data-page="finance">💰 Finance</button><button class="nav-btn lineman" data-page="lineman">🛵 Lineman Tracker</button></nav></div></header><main class="frame-wrap"><iframe id="appFrame" title="Dashboard app"></iframe></main></div><div class="hint">PWA ready • Add to Home Screen ได้</div>
+<div class="shell"><header class="topbar"><div class="topbar-inner"><div class="brand"><div class="brand-tag">ALL-IN-ONE DASHBOARD</div><div class="brand-title" id="pageTitle">วางแผนการเงิน</div></div><nav class="nav" aria-label="Dashboard navigation"><button class="nav-btn active" data-page="finance">💰 Finance</button><button class="nav-btn lineman" data-page="lineman">🛵 Lineman Tracker</button></nav><div class="sync"><div class="sync-status" id="syncStatus">Cloud sync: ยังไม่ได้ตั้งค่า</div><button class="sync-btn primary" id="loginBtn" type="button">Sign in</button><button class="sync-btn danger" id="logoutBtn" type="button" style="display:none">ออก</button></div></div></header><main class="frame-wrap"><iframe id="appFrame" title="Dashboard app"></iframe></main></div><div class="hint">PWA ready • Firebase sync ready</div>
 <template id="finance-template">
 <!DOCTYPE html>
 <html lang="th">
@@ -1276,9 +1280,149 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
  const labels={finance:'วางแผนการเงิน',lineman:'แดชบอร์ดวิ่งงาน Lineman'};
  function getTemplate(page){const id=page==='lineman'?'lineman-template':'finance-template';return document.getElementById(id).innerHTML.trim();}
  function setPage(page){buttons.forEach(btn=>btn.classList.toggle('active',btn.dataset.page===page));title.textContent=labels[page]||labels.finance;frame.srcdoc=getTemplate(page);try{localStorage.setItem('all_dashboard_page',page);}catch(e){}}
+ window.setDashboardPageFromSync=function(page){setPage(page==='lineman'?'lineman':'finance');};
  buttons.forEach(btn=>btn.addEventListener('click',()=>setPage(btn.dataset.page)));
  let saved='finance';try{saved=localStorage.getItem('all_dashboard_page')||'finance';}catch(e){}
  setPage(saved==='lineman'?'lineman':'finance');
+})();
+</script>
+<script>
+(function(){
+  /* STEP REQUIRED: Replace this config with your Firebase Web App config. */
+  const firebaseConfig = {
+    apiKey: "PASTE_YOUR_API_KEY_HERE",
+    authDomain: "PASTE_YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "PASTE_YOUR_PROJECT_ID",
+    storageBucket: "PASTE_YOUR_PROJECT_ID.firebasestorage.app",
+    messagingSenderId: "PASTE_YOUR_SENDER_ID",
+    appId: "PASTE_YOUR_APP_ID"
+  };
+
+  const SYNC_KEYS = [
+    "all_dashboard_page",
+    "fp4_items","fp4_pm","fp4_pr","fp4_pmode","fp4_inv","fp4_invr","fp4_sso",
+    "lm_wdMin","lm_wdMax","lm_weMin","lm_weMax","lm_wdt","lm_wet","lm_fuel","lm_repair","lm_dayMap","lm_goalAmt","lm_projM","lm_projWD"
+  ];
+
+  const statusEl=document.getElementById("syncStatus");
+  const loginBtn=document.getElementById("loginBtn");
+  const logoutBtn=document.getElementById("logoutBtn");
+  const frame=document.getElementById("appFrame");
+  const isConfigured = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("PASTE_") && firebaseConfig.projectId && !firebaseConfig.projectId.includes("PASTE_");
+  let auth=null, db=null, user=null, docRef=null, unsubscribe=null;
+  let lastHash="", applyingRemote=false, saveTimer=null;
+
+  function setStatus(msg){ if(statusEl) statusEl.textContent=msg; }
+  function collectState(){
+    const data={};
+    SYNC_KEYS.forEach(k=>{ const v=localStorage.getItem(k); if(v!==null) data[k]=v; });
+    return { data, updatedAt: Date.now(), appVersion: "firebase-sync-v1" };
+  }
+  function hashState(state){ return JSON.stringify(state.data||{}); }
+  function applyState(state){
+    if(!state || !state.data) return;
+    applyingRemote=true;
+    Object.keys(state.data).forEach(k=>localStorage.setItem(k,state.data[k]));
+    lastHash=hashState(state);
+    try{
+      const current=localStorage.getItem("all_dashboard_page")||"finance";
+      if(frame && window.setDashboardPageFromSync) window.setDashboardPageFromSync(current);
+      else if(frame) location.reload();
+    }finally{
+      setTimeout(()=>{applyingRemote=false;},1200);
+    }
+  }
+  function scheduleSave(){
+    if(!user || !docRef || applyingRemote) return;
+    clearTimeout(saveTimer);
+    saveTimer=setTimeout(async()=>{
+      const state=collectState();
+      const h=hashState(state);
+      if(h===lastHash) return;
+      try{
+        await docRef.set(state,{merge:true});
+        lastHash=h;
+        setStatus("Cloud sync: บันทึกแล้ว");
+      }catch(err){
+        console.error(err);
+        setStatus("Cloud sync: บันทึกไม่สำเร็จ");
+      }
+    },700);
+  }
+
+  if(!isConfigured){
+    setStatus("Cloud sync: รอใส่ Firebase config");
+    if(loginBtn) loginBtn.disabled=true;
+    return;
+  }
+
+  try{
+    firebase.initializeApp(firebaseConfig);
+    auth=firebase.auth();
+    db=firebase.firestore();
+  }catch(err){
+    console.error(err);
+    setStatus("Cloud sync: config ไม่ถูกต้อง");
+    if(loginBtn) loginBtn.disabled=true;
+    return;
+  }
+
+  if(loginBtn){
+    loginBtn.addEventListener("click", async()=>{
+      const provider=new firebase.auth.GoogleAuthProvider();
+      try{ await auth.signInWithPopup(provider); }
+      catch(err){
+        console.warn("Popup failed, trying redirect", err);
+        try{ await auth.signInWithRedirect(provider); }
+        catch(e){ console.error(e); setStatus("Cloud sync: login ไม่สำเร็จ"); }
+      }
+    });
+  }
+  if(logoutBtn){ logoutBtn.addEventListener("click",()=>auth.signOut()); }
+  auth.getRedirectResult().catch(err=>console.warn("Redirect result error",err));
+
+  auth.onAuthStateChanged(async(u)=>{
+    user=u;
+    if(unsubscribe){unsubscribe();unsubscribe=null;}
+    if(!u){
+      docRef=null; lastHash=hashState(collectState());
+      if(loginBtn) loginBtn.style.display="inline-block";
+      if(logoutBtn) logoutBtn.style.display="none";
+      setStatus("Cloud sync: ยังไม่ Sign in");
+      return;
+    }
+    if(loginBtn) loginBtn.style.display="none";
+    if(logoutBtn) logoutBtn.style.display="inline-block";
+    setStatus("Cloud sync: กำลังโหลด...");
+    docRef=db.collection("dashboardSync").doc(u.uid);
+    try{
+      const snap=await docRef.get();
+      const localState=collectState();
+      if(snap.exists){
+        applyState(snap.data());
+        setStatus("Cloud sync: โหลดแล้ว");
+      }else{
+        await docRef.set(localState,{merge:true});
+        lastHash=hashState(localState);
+        setStatus("Cloud sync: สร้างข้อมูลแล้ว");
+      }
+      unsubscribe=docRef.onSnapshot(s=>{
+        if(!s.exists) return;
+        const remote=s.data();
+        const rh=hashState(remote);
+        if(rh && rh!==lastHash && !applyingRemote){
+          applyState(remote);
+          setStatus("Cloud sync: อัปเดตจาก cloud");
+        }
+      });
+    }catch(err){
+      console.error(err);
+      setStatus("Cloud sync: โหลดไม่สำเร็จ");
+    }
+  });
+
+  setInterval(scheduleSave,1500);
+  window.addEventListener("beforeunload",scheduleSave);
 })();
 </script>
 <script>
