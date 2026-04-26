@@ -6,7 +6,7 @@
 <title>Finance & Lineman Dashboard</title>
 <meta name="theme-color" content="#111827"/>
 <meta name="description" content="All-in-one Finance Planner and Lineman Tracker"/>
-<meta name="app-version" content="firebase-sync-v2"/>
+<meta name="app-version" content="firebase-sync-v4"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -41,7 +41,7 @@ html,body{min-height:100%;background:var(--outer-bg);color:var(--outer-text);fon
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#0d1117;color:#e8edf5;font-family:'IBM Plex Sans Thai','Sarabun',sans-serif;min-height:100vh;padding:16px 12px 60px;}
+body{background:#0d1117;color:#e8edf5;font-family:'IBM Plex Sans Thai','Sarabun',sans-serif;min-height:100vh;padding:16px 12px calc(120px + env(safe-area-inset-bottom));}
 input,select,button,textarea{font-family:inherit;}
 input,select,textarea{outline:none;-webkit-appearance:none;appearance:none;}
 input:focus,select:focus,textarea:focus{border-color:#ffc857!important;box-shadow:0 0 0 2px #ffc85722!important;}
@@ -72,8 +72,9 @@ button:active{opacity:0.8;}
 .proj-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .res-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
 @media(max-width:500px){
+  body{padding-bottom:calc(150px + env(safe-area-inset-bottom));}
   .sum-grid{grid-template-columns:1fr 1fr;}.sum-grid>:last-child{grid-column:span 2;}
-  .list-cols{grid-template-columns:1fr;}
+  .list-cols{grid-template-columns:1fr;padding-bottom:28px;}
   .proj-row{grid-template-columns:1fr;}
   .res-grid{grid-template-columns:1fr;}
 }
@@ -1290,7 +1291,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 <script>
 (function(){
   /* STEP REQUIRED: Replace this config with your Firebase Web App config. */
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
   const firebaseConfig = {
     apiKey: "AIzaSyCW2kJNB84183eq8UZtl-MJYhEFYZ2kMOc",
     authDomain: "dashboard-finance-658d4.firebaseapp.com",
@@ -1320,7 +1321,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
   function collectState(){
     const data={};
     SYNC_KEYS.forEach(k=>{ const v=localStorage.getItem(k); if(v!==null) data[k]=v; });
-    return { data, updatedAt: Date.now(), appVersion: "firebase-sync-v1" };
+    return { data, updatedAt: Date.now(), appVersion: "firebase-sync-v3" };
   }
   function hashState(state){ return JSON.stringify(state.data||{}); }
   function applyState(state, opts={}){
@@ -1370,7 +1371,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
         pendingLocalHash="";
         setStatus("Cloud sync: บันทึกไม่สำเร็จ");
       }
-    },1200);
+    },1800);
   }
 
   if(!isConfigured){
@@ -1436,10 +1437,16 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
         if(!rh || applyingRemote) return;
         // Ignore the snapshot that Firestore sends back after this device saves.
         if(rh===lastHash || rh===pendingLocalHash) return;
-        // Extra guard: avoid reloading right after a local save.
-        if(Date.now()-lastSavedAt < 2500) return;
-        applyState(remote, {reloadFrame:true});
-        setStatus("Cloud sync: อัปเดตจาก cloud");
+        // V3 safe-sync mode:
+        // Do NOT auto-reload the iframe while the user is using the app.
+        // Reloading React apps from Firestore snapshots can force scroll back to top.
+        // New cloud data will load on next open / refresh / sign-in, while this device still auto-saves normally.
+        if(Date.now()-lastSavedAt < 30000){
+          lastHash = rh;
+          setStatus("Cloud sync: บันทึกแล้ว");
+          return;
+        }
+        setStatus("Cloud sync: มีข้อมูลใหม่ รีเฟรชเพื่อโหลด");
       });
     }catch(err){
       console.error(err);
@@ -1447,7 +1454,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
     }
   });
 
-  setInterval(scheduleSave,4000);
+  setInterval(scheduleSave,6000);
   window.addEventListener("beforeunload",scheduleSave);
 })();
 </script>
