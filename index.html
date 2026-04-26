@@ -6,6 +6,7 @@
 <title>Finance & Lineman Dashboard</title>
 <meta name="theme-color" content="#111827"/>
 <meta name="description" content="All-in-one Finance Planner and Lineman Tracker"/>
+<meta name="app-version" content="firebase-sync-v2"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -1289,16 +1290,14 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 <script>
 (function(){
   /* STEP REQUIRED: Replace this config with your Firebase Web App config. */
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCW2kJNB84183eq8UZtl-MJYhEFYZ2kMOc",
-  authDomain: "dashboard-finance-658d4.firebaseapp.com",
-  projectId: "dashboard-finance-658d4",
-  storageBucket: "dashboard-finance-658d4.firebasestorage.app",
-  messagingSenderId: "698245691704",
-  appId: "1:698245691704:web:01e79de011104d539f69cd",
-  measurementId: "G-LDF06ZYFVD"
-};
+  const firebaseConfig = {
+    apiKey: "PASTE_YOUR_API_KEY_HERE",
+    authDomain: "PASTE_YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "PASTE_YOUR_PROJECT_ID",
+    storageBucket: "PASTE_YOUR_PROJECT_ID.firebasestorage.app",
+    messagingSenderId: "PASTE_YOUR_SENDER_ID",
+    appId: "PASTE_YOUR_APP_ID"
+  };
 
   const SYNC_KEYS = [
     "all_dashboard_page",
@@ -1313,6 +1312,7 @@ const firebaseConfig = {
   const isConfigured = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("PASTE_") && firebaseConfig.projectId && !firebaseConfig.projectId.includes("PASTE_");
   let auth=null, db=null, user=null, docRef=null, unsubscribe=null;
   let lastHash="", applyingRemote=false, saveTimer=null;
+  let pendingLocalHash="", lastSavedAt=0, lastAppliedAt=0;
 
   function setStatus(msg){ if(statusEl) statusEl.textContent=msg; }
   function collectState(){
@@ -1321,15 +1321,29 @@ const firebaseConfig = {
     return { data, updatedAt: Date.now(), appVersion: "firebase-sync-v1" };
   }
   function hashState(state){ return JSON.stringify(state.data||{}); }
-  function applyState(state){
+  function applyState(state, opts={}){
     if(!state || !state.data) return;
     applyingRemote=true;
+    const beforePage=localStorage.getItem("all_dashboard_page")||"finance";
+    let beforeScroll=0;
+    try{ beforeScroll = frame && frame.contentWindow ? frame.contentWindow.scrollY : 0; }catch(e){}
+
     Object.keys(state.data).forEach(k=>localStorage.setItem(k,state.data[k]));
     lastHash=hashState(state);
+    lastAppliedAt=Date.now();
+
     try{
-      const current=localStorage.getItem("all_dashboard_page")||"finance";
-      if(frame && window.setDashboardPageFromSync) window.setDashboardPageFromSync(current);
-      else if(frame) location.reload();
+      const afterPage=localStorage.getItem("all_dashboard_page")||"finance";
+      const pageChanged = beforePage !== afterPage;
+      // Reload the iframe only when a real remote update must be reflected.
+      // This prevents local auto-save echoes from jumping the page back to the top.
+      if(opts.reloadFrame !== false){
+        if(frame && window.setDashboardPageFromSync) window.setDashboardPageFromSync(afterPage);
+        else if(frame) location.reload();
+        if(!pageChanged){
+          setTimeout(()=>{ try{ frame.contentWindow.scrollTo(0,beforeScroll); }catch(e){} },120);
+        }
+      }
     }finally{
       setTimeout(()=>{applyingRemote=false;},1200);
     }
@@ -1340,16 +1354,21 @@ const firebaseConfig = {
     saveTimer=setTimeout(async()=>{
       const state=collectState();
       const h=hashState(state);
-      if(h===lastHash) return;
+      if(h===lastHash || h===pendingLocalHash) return;
       try{
-        await docRef.set(state,{merge:true});
+        // Mark this hash before writing so the Firestore snapshot echo is ignored.
+        pendingLocalHash=h;
         lastHash=h;
+        lastSavedAt=Date.now();
+        await docRef.set(state,{merge:true});
         setStatus("Cloud sync: บันทึกแล้ว");
+        setTimeout(()=>{ if(pendingLocalHash===h) pendingLocalHash=""; },2500);
       }catch(err){
         console.error(err);
+        pendingLocalHash="";
         setStatus("Cloud sync: บันทึกไม่สำเร็จ");
       }
-    },700);
+    },1200);
   }
 
   if(!isConfigured){
@@ -1401,7 +1420,7 @@ const firebaseConfig = {
       const snap=await docRef.get();
       const localState=collectState();
       if(snap.exists){
-        applyState(snap.data());
+        applyState(snap.data(), {reloadFrame:true});
         setStatus("Cloud sync: โหลดแล้ว");
       }else{
         await docRef.set(localState,{merge:true});
@@ -1412,10 +1431,13 @@ const firebaseConfig = {
         if(!s.exists) return;
         const remote=s.data();
         const rh=hashState(remote);
-        if(rh && rh!==lastHash && !applyingRemote){
-          applyState(remote);
-          setStatus("Cloud sync: อัปเดตจาก cloud");
-        }
+        if(!rh || applyingRemote) return;
+        // Ignore the snapshot that Firestore sends back after this device saves.
+        if(rh===lastHash || rh===pendingLocalHash) return;
+        // Extra guard: avoid reloading right after a local save.
+        if(Date.now()-lastSavedAt < 2500) return;
+        applyState(remote, {reloadFrame:true});
+        setStatus("Cloud sync: อัปเดตจาก cloud");
       });
     }catch(err){
       console.error(err);
@@ -1423,7 +1445,7 @@ const firebaseConfig = {
     }
   });
 
-  setInterval(scheduleSave,1500);
+  setInterval(scheduleSave,4000);
   window.addEventListener("beforeunload",scheduleSave);
 })();
 </script>

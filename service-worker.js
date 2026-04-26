@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finance-lineman-dashboard-v1';
+const CACHE_NAME = 'dashboard-pwa-firebase-v2';
 const CORE_ASSETS = [
   './',
   './index.html',
