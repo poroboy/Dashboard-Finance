@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Finance & Lineman Dashboard</title>
+<meta name="theme-color" content="#111827"/>
+<meta name="description" content="All-in-one Finance Planner and Lineman Tracker"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="My Dashboard"/>
+<link rel="manifest" href="manifest.webmanifest"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Kanit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--outer-bg:#090d16;--outer-surface:#111827;--outer-card:#1a2235;--outer-border:#2a3650;--outer-accent:#ffc857;--outer-green:#00e5a0;--outer-text:#e8edf5;--outer-muted:#7b89a8;--outer-font:'IBM Plex Sans Thai','Kanit',sans-serif;--outer-mono:'Space Mono',monospace;}
+html,body{min-height:100%;background:var(--outer-bg);color:var(--outer-text);font-family:var(--outer-font);}body{overflow:hidden;}.shell{height:100vh;display:flex;flex-direction:column;}
+.topbar{flex:0 0 auto;background:linear-gradient(180deg,#121a2a 0%,#0d1320 100%);border-bottom:1px solid var(--outer-border);padding:10px 12px;position:relative;z-index:10;}.topbar-inner{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:12px;}.brand{flex:1;min-width:0;}.brand-tag{font-family:var(--outer-mono);font-size:10px;letter-spacing:.8px;color:var(--outer-accent);margin-bottom:1px;}.brand-title{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.nav{display:flex;gap:6px;background:#090d16;border:1px solid var(--outer-border);border-radius:12px;padding:5px;}.nav-btn{border:none;border-radius:9px;padding:9px 12px;background:transparent;color:var(--outer-muted);cursor:pointer;font-family:var(--outer-font);font-size:13px;font-weight:600;transition:all .18s ease;white-space:nowrap;}.nav-btn.active{background:var(--outer-accent);color:#0d1117;box-shadow:0 0 0 1px #ffc85755 inset;}.nav-btn.lineman.active{background:#ffd60a;color:#0a0e1a;}.frame-wrap{flex:1 1 auto;min-height:0;position:relative;background:var(--outer-bg);}iframe{position:absolute;inset:0;width:100%;height:100%;border:none;background:transparent;}.hint{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);background:#111827e6;border:1px solid var(--outer-border);color:var(--outer-muted);padding:6px 10px;border-radius:999px;font-size:10px;pointer-events:none;backdrop-filter:blur(8px);z-index:20;}@media(max-width:560px){.topbar-inner{flex-direction:column;align-items:stretch;gap:8px;}.brand{text-align:center;}.brand-title{font-size:16px;}.nav{width:100%;}.nav-btn{flex:1;padding:9px 6px;font-size:12px;}.hint{display:none;}}
+</style>
+</head>
+<body>
+<div class="shell"><header class="topbar"><div class="topbar-inner"><div class="brand"><div class="brand-tag">ALL-IN-ONE DASHBOARD</div><div class="brand-title" id="pageTitle">วางแผนการเงิน</div></div><nav class="nav" aria-label="Dashboard navigation"><button class="nav-btn active" data-page="finance">💰 Finance</button><button class="nav-btn lineman" data-page="lineman">🛵 Lineman Tracker</button></nav></div></header><main class="frame-wrap"><iframe id="appFrame" title="Dashboard app"></iframe></main></div><div class="hint">PWA ready • Add to Home Screen ได้</div>
+<template id="finance-template">
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>วางแผนการเงิน</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0d1117;color:#e8edf5;font-family:'IBM Plex Sans Thai','Sarabun',sans-serif;min-height:100vh;padding:16px 12px 60px;}
+input,select,button,textarea{font-family:inherit;}
+input,select,textarea{outline:none;-webkit-appearance:none;appearance:none;}
+input:focus,select:focus,textarea:focus{border-color:#ffc857!important;box-shadow:0 0 0 2px #ffc85722!important;}
+button:active{opacity:0.8;}
+.tag{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.5px;}
+.mono{font-family:'Space Mono',monospace;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.fi{animation:fadeIn 0.2s ease;}
+.range-wrap{position:relative;}
+.range-input{-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;background:#2a3444;width:100%;}
+.range-input::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#ffc857;cursor:pointer;box-shadow:0 1px 4px #0006;}
+.range-input::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#ffc857;border:none;cursor:pointer;}
+.card{background:#1c2230;border:1px solid #2a3444;border-radius:12px;padding:14px;}
+.surface{background:#161b22;}
+.btn-sm{border:none;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;font-weight:600;}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:20px;font-family:'Space Mono',monospace;}
+.tab-btn{flex:1;padding:9px 4px;font-size:13px;border-radius:8px;border:1px solid #2a3444;background:#161b22;color:#6b7a99;cursor:pointer;transition:all .15s;}
+.tab-btn.active{background:#ffc8571a;border-color:#ffc857;color:#ffc857;font-weight:600;}
+.icon-btn{background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:6px;font-size:16px;line-height:1;opacity:0.55;transition:opacity .15s;}
+.icon-btn:hover,.icon-btn:active{opacity:1;}
+.modal-bg{position:fixed;inset:0;background:#000a;z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;}
+.modal{background:#1c2230;border:1px solid #2a3444;border-radius:16px;padding:20px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:#161b22;}::-webkit-scrollbar-thumb{background:#2a3444;border-radius:2px;}
+.drag-handle{cursor:grab;color:#6b7a99;font-size:14px;padding:0 4px;}
+.drag-handle:active{cursor:grabbing;}
+.sum-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.list-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.proj-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.res-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+@media(max-width:500px){
+  .sum-grid{grid-template-columns:1fr 1fr;}.sum-grid>:last-child{grid-column:span 2;}
+  .list-cols{grid-template-columns:1fr;}
+  .proj-row{grid-template-columns:1fr;}
+  .res-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useMemo,useEffect,useRef,useCallback}=React;
+
+/* ── helpers ── */
+const uid=()=>Math.random().toString(36).slice(2,9);
+const fmt=n=>n.toLocaleString("th-TH",{minimumFractionDigits:2,maximumFractionDigits:2});
+function load(k,fb){try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb;}catch{return fb;}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+
+/* ── Social Security 2025: 5% capped at 750/mo ── */
+function calcSSO(salary){
+  if(salary<1650)return 0;
+  if(salary>15000)return 750;
+  return Math.round(salary*0.05);
+}
+/* ── Income tax (monthly → annualise) ── */
+function calcTax(annualNet){
+  if(annualNet<=150000)return 0;
+  const brackets=[[50000,0.05],[200000,0.10],[500000,0.15],[750000,0.20],[1000000,0.25],[2000000,0.30],[Infinity,0.35]];
+  let tax=0,prev=150000;
+  for(const[top,rate]of brackets){
+    const chunk=Math.min(annualNet-prev,top);
+    if(chunk<=0)break;
+    tax+=chunk*rate;
+    prev+=top;
+  }
+  return tax/12;
+}
+
+const C={bg:"#0d1117",surface:"#161b22",card:"#1c2230",border:"#2a3444",
+         income:"#3dffa0",expense:"#ff5e7e",accent:"#ffc857",text:"#e8edf5",muted:"#6b7a99"};
+
+/* ────────────────── DEFAULTS ────────────────── */
+const DEF_ITEMS=[
+  {id:uid(),type:"income",label:"เงินเดือน",amount:35000,isSalary:true,daysPerMonth:null,months:null,subItems:[]},
+  {id:uid(),type:"expense",label:"ค่าเช่า",amount:8000,isSalary:false,daysPerMonth:null,months:null,subItems:[]},
+  {id:uid(),type:"expense",label:"ค่าอาหาร",amount:5000,isSalary:false,daysPerMonth:null,months:null,subItems:[]},
+];
+
+/* ────────────────── MAIN APP ────────────────── */
+function App(){
+  const[items,setItems]=useState(()=>load("fp4_items",DEF_ITEMS));
+  const[tab,setTab]=useState("main"); // main | proj
+  const[modal,setModal]=useState(null); // null | {mode:"add"|"edit", item}
+  const[sortMode,setSortMode]=useState("manual"); // manual | asc | desc
+  const[projMonths,setProjMonths]=useState(()=>load("fp4_pm",12));
+  const[projRate,setProjRate]=useState(()=>load("fp4_pr",2.5));
+  const[projMode,setProjMode]=useState(()=>load("fp4_pmode","compound"));
+  const[investAmt,setInvestAmt]=useState(()=>load("fp4_inv",0));
+  const[investRate,setInvestRate]=useState(()=>load("fp4_invr",5));
+  const[showSSO,setShowSSO]=useState(()=>load("fp4_sso",false));
+
+  useEffect(()=>save("fp4_items",items),[items]);
+  useEffect(()=>save("fp4_pm",projMonths),[projMonths]);
+  useEffect(()=>save("fp4_pr",projRate),[projRate]);
+  useEffect(()=>save("fp4_pmode",projMode),[projMode]);
+  useEffect(()=>save("fp4_inv",investAmt),[investAmt]);
+  useEffect(()=>save("fp4_invr",investRate),[investRate]);
+  useEffect(()=>save("fp4_sso",showSSO),[showSSO]);
+
+  /* effective monthly amount for an item at month offset m (0-based) */
+  function effectiveAt(item,m){
+    if(item.months!=null && m>=item.months) return 0;
+    const base=item.daysPerMonth!=null ? item.amount*item.daysPerMonth : item.amount;
+    // sub-items: find override for this month
+    const sub=item.subItems&&item.subItems.find(s=>s.month===m+1);
+    if(sub) return sub.amount;
+    return base;
+  }
+
+  /* current month totals */
+  const totalIncome=useMemo(()=>
+    items.filter(i=>i.type==="income").reduce((s,i)=>s+effectiveAt(i,0),0)
+  ,[items]);
+  const totalExpense=useMemo(()=>
+    items.filter(i=>i.type==="expense").reduce((s,i)=>s+effectiveAt(i,0),0)
+  ,[items]);
+  const net=totalIncome-totalExpense;
+
+  /* salary for SSO/tax */
+  const salaryItem=items.find(i=>i.isSalary&&i.type==="income");
+  const salary=salaryItem?effectiveAt(salaryItem,0):0;
+  const sso=calcSSO(salary);
+  const annualNet=(salary-sso)*12;
+  const monthlyTax=calcTax(annualNet);
+  const netAfterDeduct=net-(showSSO?sso+monthlyTax:0);
+
+  /* sorted display */
+  const sorted=useCallback((list)=>{
+    if(sortMode==="asc") return [...list].sort((a,b)=>effectiveAt(a,0)-effectiveAt(b,0));
+    if(sortMode==="desc") return [...list].sort((a,b)=>effectiveAt(b,0)-effectiveAt(a,0));
+    return list;
+  },[sortMode,items]);
+
+  /* reorder */
+  const dragRef=useRef(null);
+  function onDragStart(id){dragRef.current=id;}
+  function onDrop(targetId){
+    if(!dragRef.current||dragRef.current===targetId)return;
+    setItems(prev=>{
+      const arr=[...prev];
+      const from=arr.findIndex(i=>i.id===dragRef.current);
+      const to=arr.findIndex(i=>i.id===targetId);
+      const [moved]=arr.splice(from,1);arr.splice(to,0,moved);
+      return arr;
+    });
+    dragRef.current=null;
+  }
+
+  function saveItem(item){
+    setItems(prev=>prev.find(i=>i.id===item.id)
+      ?prev.map(i=>i.id===item.id?item:i)
+      :[...prev,item]);
+    setModal(null);
+  }
+  function removeItem(id){setItems(prev=>prev.filter(i=>i.id!==id));}
+
+  /* projection timeline */
+  const projData=useMemo(()=>{
+    const months=[];
+    let cum=0;
+    const r=projRate/100/12;
+    for(let m=0;m<projMonths;m++){
+      const inc=items.filter(i=>i.type==="income").reduce((s,i)=>s+effectiveAt(i,m),0);
+      const exp=items.filter(i=>i.type==="expense").reduce((s,i)=>s+effectiveAt(i,m),0);
+      const deduct=showSSO?sso+monthlyTax:0;
+      const save_=Math.max(0,inc-exp-deduct);
+      if(projMode==="compound"&&r>0) cum=(cum+save_)*(1+r);
+      else cum+=save_+(projMode==="compound"?0:save_*r*m);
+      months.push({m,inc,exp,save_,cum});
+    }
+    return months;
+  },[items,projMonths,projRate,projMode,showSSO,sso,monthlyTax]);
+
+  const finalCum=projData.length?projData[projData.length-1].cum:0;
+  const totalSaved=projData.reduce((s,d)=>s+d.save_,0);
+  const interest=finalCum-totalSaved;
+
+  /* invest projection */
+  const investFuture=useMemo(()=>{
+    const r=investRate/100/12,n=projMonths;
+    if(r>0) return investAmt*Math.pow(1+r,n)+investAmt*((Math.pow(1+r,n)-1)/r);
+    return investAmt*(1+n);
+  },[investAmt,investRate,projMonths]);
+
+  const grandTotal=finalCum+investFuture;
+
+  const yrs=Math.floor(projMonths/12),mos=projMonths%12;
+  const dur=[yrs>0?`${yrs} ปี`:"",mos>0?`${mos} เดือน`:""].filter(Boolean).join(" ")||"0 เดือน";
+
+  return(
+    <div style={{maxWidth:740,margin:"0 auto"}}>
+      {/* Header */}
+      <div style={{marginBottom:20}}>
+        <div className="tag" style={{color:C.accent,marginBottom:4}}>PERSONAL FINANCE PLANNER</div>
+        <h1 style={{fontSize:22,fontWeight:600}}>วางแผนการเงิน</h1>
+      </div>
+
+      {/* Tabs */}
+      <div style={{display:"flex",gap:8,marginBottom:16}}>
+        {[["main","💰 รายรับ-รายจ่าย"],["proj","📈 คาดการณ์"]].map(([v,l])=>(
+          <button key={v} className={`tab-btn${tab===v?" active":""}`} onClick={()=>setTab(v)}>{l}</button>
+        ))}
+      </div>
+
+      {tab==="main" && <>
+        {/* Summary */}
+        <div className="sum-grid" style={{marginBottom:14}}>
+          {[
+            {label:"รายรับ/เดือน",val:totalIncome,color:C.income,sign:"+"},
+            {label:"รายจ่าย/เดือน",val:totalExpense,color:C.expense,sign:"−"},
+            {label:showSSO?"คงเหลือ (หลังหัก SSO+ภาษี)":"คงเหลือ/เดือน",val:Math.abs(netAfterDeduct),color:netAfterDeduct>=0?C.income:C.expense,sign:netAfterDeduct>=0?"+":"−"},
+          ].map(s=>(
+            <div key={s.label} className="card" style={{borderColor:s.color+"33"}}>
+              <div style={{color:C.muted,fontSize:11,marginBottom:4}}>{s.label}</div>
+              <div className="mono" style={{color:s.color,fontSize:15,fontWeight:700,wordBreak:"break-all"}}>{s.sign}฿{fmt(s.val)}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* SSO toggle + info */}
+        <div className="card" style={{marginBottom:14,padding:"10px 14px"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+            <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",userSelect:"none"}}>
+              <div onClick={()=>setShowSSO(v=>!v)} style={{width:36,height:20,borderRadius:10,background:showSSO?C.accent:C.border,position:"relative",transition:"background .2s",flexShrink:0}}>
+                <div style={{position:"absolute",top:3,left:showSSO?18:3,width:14,height:14,borderRadius:"50%",background:"#fff",transition:"left .2s"}}/>
+              </div>
+              <span style={{fontSize:13}}>หักประกันสังคม + ภาษีเงินได้ <span style={{color:C.muted,fontSize:11}}>(จากเงินเดือน)</span></span>
+            </label>
+            {showSSO&&salary>0&&(
+              <div style={{display:"flex",gap:8,flexWrap:"wrap",marginLeft:"auto"}}>
+                <span className="chip" style={{background:C.expense+"22",color:C.expense}}>SSO ฿{fmt(sso)}/เดือน</span>
+                <span className="chip" style={{background:C.expense+"22",color:C.expense}}>ภาษี ≈฿{fmt(monthlyTax)}/เดือน</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Sort controls */}
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10,flexWrap:"wrap"}}>
+          <span style={{color:C.muted,fontSize:12}}>เรียงตาม:</span>
+          {[["manual","ลากเรียง"],["desc","มากสุด"],["asc","น้อยสุด"]].map(([v,l])=>(
+            <button key={v} onClick={()=>setSortMode(v)} style={{
+              padding:"5px 12px",fontSize:12,borderRadius:6,cursor:"pointer",border:`1px solid ${sortMode===v?C.accent:C.border}`,
+              background:sortMode===v?C.accent+"1a":C.surface,color:sortMode===v?C.accent:C.muted,fontFamily:"inherit"
+            }}>{l}</button>
+          ))}
+          <button onClick={()=>setModal({mode:"add",item:{id:uid(),type:"income",label:"",amount:0,isSalary:false,daysPerMonth:null,months:null,subItems:[]}})}
+            style={{marginLeft:"auto",background:C.accent,color:"#0d1117",border:"none",borderRadius:8,padding:"7px 16px",fontSize:13,fontWeight:700,cursor:"pointer"}}>
+            + เพิ่มรายการ
+          </button>
+        </div>
+
+        {/* Lists */}
+        <div className="list-cols">
+          {["income","expense"].map(type=>(
+            <div key={type}>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+                <div style={{width:7,height:7,borderRadius:"50%",background:type==="income"?C.income:C.expense}}/>
+                <span style={{fontSize:13,fontWeight:600,color:type==="income"?C.income:C.expense}}>{type==="income"?"รายรับ":"รายจ่าย"}</span>
+                <span className="tag" style={{color:C.muted,marginLeft:"auto"}}>{items.filter(i=>i.type===type).length} รายการ</span>
+              </div>
+              <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                {sorted(items.filter(i=>i.type===type)).map(item=>(
+                  <ItemRow key={item.id} item={item} type={type} effectiveAt={effectiveAt}
+                    onEdit={()=>setModal({mode:"edit",item:{...item,subItems:item.subItems||[]}})}
+                    onRemove={()=>removeItem(item.id)}
+                    onDragStart={sortMode==="manual"?onDragStart:null}
+                    onDrop={sortMode==="manual"?onDrop:null}
+                  />
+                ))}
+                {items.filter(i=>i.type===type).length===0&&(
+                  <div style={{color:C.muted,fontSize:13,textAlign:"center",padding:"14px 0",background:C.surface,borderRadius:10}}>ยังไม่มีรายการ</div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </>}
+
+      {tab==="proj" && <>
+        {/* Projection controls */}
+        <div className="card" style={{marginBottom:14}}>
+          <div style={{fontWeight:600,fontSize:14,marginBottom:14,color:C.accent}}>⚙️ ตั้งค่าการคาดการณ์</div>
+          <div className="proj-row" style={{marginBottom:14}}>
+            <StepSlider label="ระยะเวลา" value={projMonths} min={1} max={360} display={dur} onChange={setProjMonths}/>
+            <StepSlider label="ดอกเบี้ยเงินออม/ปี (%)" value={projRate} min={0} max={15} step={0.1}
+              display={`${projRate.toFixed(1)}%`} onChange={v=>setProjRate(parseFloat(v))} isFloat/>
+          </div>
+          <div style={{display:"flex",gap:8,marginBottom:4}}>
+            {[["compound","ทบต้น"],["simple","ธรรมดา"]].map(([v,l])=>(
+              <button key={v} onClick={()=>setProjMode(v)} style={{
+                flex:1,padding:"9px 6px",fontSize:13,borderRadius:8,cursor:"pointer",
+                border:`1px solid ${projMode===v?C.accent:C.border}`,
+                background:projMode===v?`${C.accent}1a`:C.surface,
+                color:projMode===v?C.accent:C.muted,
+                fontWeight:projMode===v?600:400,fontFamily:"inherit",
+              }}>{l}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* Saving result */}
+        <div className="card" style={{marginBottom:14,borderColor:C.income+"44"}}>
+          <div style={{fontWeight:600,fontSize:14,marginBottom:12}}>💵 เงินออม (เงินคงเหลือสะสม)</div>
+          <div className="res-grid" style={{marginBottom:12}}>
+            {[
+              {label:"เงินต้นสะสม",val:totalSaved,color:C.text},
+              {label:`ดอกเบี้ย (${projMode==="compound"?"ทบต้น":"ธรรมดา"})`,val:interest,color:C.accent},
+              {label:`รวมออมใน ${dur}`,val:finalCum,color:C.income,big:true},
+            ].map(s=>(
+              <div key={s.label} style={{background:C.surface,border:`1px solid ${s.big?C.income+"44":C.border}`,borderRadius:9,padding:"11px 12px"}}>
+                <div style={{color:C.muted,fontSize:11,marginBottom:4}}>{s.label}</div>
+                <div className="mono" style={{color:s.color,fontSize:s.big?17:14,fontWeight:s.big?700:500,wordBreak:"break-all"}}>฿{fmt(s.val)}</div>
+              </div>
+            ))}
+          </div>
+          <ProjBar saved={totalSaved} interest={interest}/>
+          <div style={{color:C.muted,fontSize:11,marginTop:8}}>* คำนวณจากรายได้-รายจ่ายจริงแต่ละเดือน (รวมรายการที่มีวันหมด)</div>
+        </div>
+
+        {/* Investment box */}
+        <div className="card" style={{marginBottom:14,borderColor:C.accent+"44"}}>
+          <div style={{fontWeight:600,fontSize:14,marginBottom:12}}>📊 เงินลงทุน (แยกต่างหาก)</div>
+          <div className="proj-row" style={{marginBottom:10}}>
+            <div>
+              <div style={{color:C.muted,fontSize:12,marginBottom:6}}>เงินที่นำไปลงทุน (฿/เดือน)</div>
+              <NumberInput value={investAmt} onChange={setInvestAmt} placeholder="0"/>
+            </div>
+            <StepSlider label="ผลตอบแทน/ปี (%)" value={investRate} min={0} max={30} step={0.5}
+              display={`${investRate.toFixed(1)}%`} onChange={v=>setInvestRate(parseFloat(v))} isFloat/>
+          </div>
+          <div style={{background:C.surface,border:`1px solid ${C.accent+"44"}`,borderRadius:9,padding:"11px 14px"}}>
+            <div style={{color:C.muted,fontSize:11,marginBottom:3}}>มูลค่าเงินลงทุนใน {dur}</div>
+            <div className="mono" style={{color:C.accent,fontSize:18,fontWeight:700}}>฿{fmt(investFuture)}</div>
+          </div>
+        </div>
+
+        {/* Grand total */}
+        <div className="card" style={{borderColor:C.income+"66",background:"#1a2820"}}>
+          <div style={{color:C.muted,fontSize:12,marginBottom:4}}>💎 รวมทั้งหมด (เงินออม + เงินลงทุน) ใน {dur}</div>
+          <div className="mono" style={{color:C.income,fontSize:22,fontWeight:700}}>฿{fmt(grandTotal)}</div>
+        </div>
+      </>}
+
+      {/* Modal */}
+      {modal&&<ItemModal modal={modal} onSave={saveItem} onClose={()=>setModal(null)}/>}
+    </div>
+  );
+}
+
+/* ────────────────── ITEM ROW ────────────────── */
+function ItemRow({item,type,effectiveAt,onEdit,onRemove,onDragStart,onDrop}){
+  const amt=effectiveAt(item,0);
+  const hasExpiry=item.months!=null;
+  const hasDays=item.daysPerMonth!=null;
+  const hasSubs=item.subItems&&item.subItems.length>0;
+  const color=type==="income"?C.income:C.expense;
+  return(
+    <div className="fi" draggable={!!onDragStart}
+      onDragStart={onDragStart?()=>onDragStart(item.id):undefined}
+      onDragOver={e=>e.preventDefault()}
+      onDrop={onDrop?()=>onDrop(item.id):undefined}
+      style={{display:"flex",alignItems:"center",gap:6,background:C.card,borderRadius:9,padding:"9px 10px",border:`1px solid ${C.border}`}}>
+      {onDragStart&&<span className="drag-handle">⠿</span>}
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontSize:13,fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.label}
+          {item.isSalary&&<span className="chip" style={{marginLeft:6,background:C.accent+"22",color:C.accent}}>เงินเดือน</span>}
+        </div>
+        <div style={{display:"flex",gap:6,marginTop:3,flexWrap:"wrap"}}>
+          {hasDays&&<span className="chip" style={{background:"#ffffff11",color:C.muted}}>{item.daysPerMonth} วัน × ฿{fmt(item.amount)}</span>}
+          {hasExpiry&&<span className="chip" style={{background:C.expense+"22",color:C.expense}}>เหลือ {item.months} เดือน</span>}
+          {hasSubs&&<span className="chip" style={{background:C.accent+"22",color:C.accent}}>มีลดหลั่น {item.subItems.length} เดือน</span>}
+        </div>
+      </div>
+      <div className="mono" style={{color,fontSize:13,fontWeight:600,flexShrink:0}}>{type==="income"?"+":"−"}฿{fmt(amt)}</div>
+      <button className="icon-btn" onClick={onEdit} title="แก้ไข">✏️</button>
+      <button className="icon-btn" onClick={onRemove} style={{color:C.expense}} title="ลบ">×</button>
+    </div>
+  );
+}
+
+/* ────────────────── MODAL ────────────────── */
+function ItemModal({modal,onSave,onClose}){
+  const isEdit=modal.mode==="edit";
+  const[item,setItem]=useState(modal.item);
+  const[useDays,setUseDays]=useState(modal.item.daysPerMonth!=null);
+  const[useExpiry,setUseExpiry]=useState(modal.item.months!=null);
+  const[useSubs,setUseSubs]=useState((modal.item.subItems||[]).length>0);
+  const set=(k,v)=>setItem(p=>({...p,[k]:v}));
+
+  function addSub(){setItem(p=>({...p,subItems:[...(p.subItems||[]),{id:uid(),month:1,amount:0}]}));}
+  function removeSub(id){setItem(p=>({...p,subItems:p.subItems.filter(s=>s.id!==id)}));}
+  function setSub(id,k,v){setItem(p=>({...p,subItems:p.subItems.map(s=>s.id===id?{...s,[k]:v}:s)}));}
+
+  function handleSave(){
+    const final={...item,
+      amount:parseFloat(item.amount)||0,
+      daysPerMonth:useDays?(parseFloat(item.daysPerMonth)||null):null,
+      months:useExpiry?(parseInt(item.months)||null):null,
+      subItems:useSubs?(item.subItems||[]).map(s=>({...s,amount:parseFloat(s.amount)||0,month:parseInt(s.month)||1})):[],
+    };
+    if(!final.label.trim())return alert("กรุณาใส่ชื่อรายการ");
+    if(final.amount<=0&&!useDays)return alert("กรุณาใส่จำนวนเงิน");
+    if(useDays&&(!final.daysPerMonth||final.daysPerMonth<=0))return alert("กรุณาใส่จำนวนวัน");
+    onSave(final);
+  }
+
+  const inp={background:C.surface,border:`1px solid ${C.border}`,color:C.text,borderRadius:8,padding:"10px 12px",fontSize:14,width:"100%"};
+
+  return(
+    <div className="modal-bg" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal fi">
+        <div style={{fontWeight:600,fontSize:16,marginBottom:16}}>{isEdit?"✏️ แก้ไขรายการ":"➕ เพิ่มรายการ"}</div>
+
+        {/* Type */}
+        <div style={{marginBottom:12}}>
+          <Label>ประเภท</Label>
+          <div style={{display:"flex",gap:8}}>
+            {[["income","+ รายรับ"],["expense","− รายจ่าย"]].map(([v,l])=>(
+              <button key={v} onClick={()=>set("type",v)} style={{
+                flex:1,padding:"9px",fontSize:13,borderRadius:8,cursor:"pointer",fontFamily:"inherit",
+                border:`1px solid ${item.type===v?(v==="income"?C.income:C.expense):C.border}`,
+                background:item.type===v?(v==="income"?C.income+"22":C.expense+"22"):C.surface,
+                color:item.type===v?(v==="income"?C.income:C.expense):C.muted,fontWeight:item.type===v?600:400,
+              }}>{l}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* Label */}
+        <div style={{marginBottom:12}}>
+          <Label>ชื่อรายการ</Label>
+          <input style={inp} value={item.label} onChange={e=>set("label",e.target.value)} placeholder="เช่น ค่าไฟ, ขับ Grab"/>
+        </div>
+
+        {/* Salary toggle */}
+        {item.type==="income"&&(
+          <div style={{marginBottom:12}}>
+            <Toggle label="เป็นเงินเดือน (ใช้คำนวณ SSO + ภาษี)" value={item.isSalary} onChange={v=>set("isSalary",v)}/>
+          </div>
+        )}
+
+        {/* Days mode */}
+        <div style={{marginBottom:12}}>
+          <Toggle label="คิดตามจำนวนวัน (เช่น ขับ Grab)" value={useDays} onChange={v=>{setUseDays(v);if(!v)set("daysPerMonth",null);}}/>
+          {useDays&&(
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:8}}>
+              <div>
+                <Label>รายรับ/จ่ายต่อวัน (฿)</Label>
+                <input style={inp} type="number" min="0" value={item.amount||""} onChange={e=>set("amount",e.target.value)} placeholder="250"/>
+              </div>
+              <div>
+                <Label>จำนวนวันต่อเดือน</Label>
+                <input style={inp} type="number" min="0" max="31" value={item.daysPerMonth||""} onChange={e=>set("daysPerMonth",e.target.value)} placeholder="22"/>
+              </div>
+            </div>
+          )}
+          {!useDays&&(
+            <div style={{marginTop:8}}>
+              <Label>จำนวนเงิน (฿/เดือน)</Label>
+              <input style={inp} type="number" min="0" value={item.amount||""} onChange={e=>set("amount",e.target.value)} placeholder="0"/>
+            </div>
+          )}
+        </div>
+
+        {/* Expiry */}
+        <div style={{marginBottom:12}}>
+          <Toggle label="มีจำนวนเดือนที่หมด (เช่น ผ่อนบัตรเครดิต)" value={useExpiry} onChange={v=>{setUseExpiry(v);if(!v)set("months",null);}}/>
+          {useExpiry&&(
+            <div style={{marginTop:8}}>
+              <Label>จำนวนเดือนที่เหลือ</Label>
+              <input style={inp} type="number" min="1" value={item.months||""} onChange={e=>set("months",e.target.value)} placeholder="5"/>
+            </div>
+          )}
+        </div>
+
+        {/* Sub-items (ลดหลั่น) */}
+        <div style={{marginBottom:16}}>
+          <Toggle label="ยอดแต่ละเดือนไม่เท่ากัน (ผ่อนลดหลั่น)" value={useSubs} onChange={v=>{setUseSubs(v);if(!v)setItem(p=>({...p,subItems:[]}));}}/>
+          {useSubs&&(
+            <div style={{marginTop:8,background:C.surface,borderRadius:8,padding:10}}>
+              <div style={{color:C.muted,fontSize:11,marginBottom:8}}>* เดือนที่ไม่ได้ระบุจะใช้ยอดหลัก — กรอกเฉพาะเดือนที่ต่างออกไป</div>
+              {(item.subItems||[]).map(s=>(
+                <div key={s.id} style={{display:"grid",gridTemplateColumns:"80px 1fr 32px",gap:6,marginBottom:6,alignItems:"center"}}>
+                  <div>
+                    <Label>เดือนที่</Label>
+                    <input style={{...inp,padding:"7px 8px"}} type="number" min="1" value={s.month||""} onChange={e=>setSub(s.id,"month",e.target.value)}/>
+                  </div>
+                  <div>
+                    <Label>ยอด (฿)</Label>
+                    <input style={{...inp,padding:"7px 8px"}} type="number" min="0" value={s.amount||""} onChange={e=>setSub(s.id,"amount",e.target.value)}/>
+                  </div>
+                  <button onClick={()=>removeSub(s.id)} style={{background:"none",border:"none",color:C.expense,cursor:"pointer",fontSize:18,marginTop:16}}>×</button>
+                </div>
+              ))}
+              <button onClick={addSub} style={{background:C.border,color:C.text,border:"none",borderRadius:7,padding:"7px 14px",fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>+ เพิ่มเดือน</button>
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div style={{display:"flex",gap:8}}>
+          <button onClick={onClose} style={{flex:1,padding:"11px",background:C.surface,border:`1px solid ${C.border}`,color:C.muted,borderRadius:8,cursor:"pointer",fontSize:14,fontFamily:"inherit"}}>ยกเลิก</button>
+          <button onClick={handleSave} style={{flex:2,padding:"11px",background:C.accent,color:"#0d1117",border:"none",borderRadius:8,cursor:"pointer",fontSize:14,fontWeight:700,fontFamily:"inherit"}}>
+            {isEdit?"บันทึก":"เพิ่มรายการ"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ────────────────── SMALL COMPONENTS ────────────────── */
+function Label({children}){
+  return <div style={{color:C.muted,fontSize:11,marginBottom:4}}>{children}</div>;
+}
+function Toggle({label,value,onChange}){
+  return(
+    <label style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",userSelect:"none"}}>
+      <div onClick={()=>onChange(!value)} style={{width:34,height:19,borderRadius:10,background:value?C.accent:C.border,position:"relative",transition:"background .2s",flexShrink:0}}>
+        <div style={{position:"absolute",top:2.5,left:value?17:2.5,width:14,height:14,borderRadius:"50%",background:"#fff",transition:"left .2s"}}/>
+      </div>
+      <span style={{fontSize:13}}>{label}</span>
+    </label>
+  );
+}
+function NumberInput({value,onChange,placeholder}){
+  return(
+    <input type="number" min="0" value={value||""} onChange={e=>onChange(parseFloat(e.target.value)||0)}
+      placeholder={placeholder||"0"}
+      style={{background:C.surface,border:`1px solid ${C.border}`,color:C.text,borderRadius:8,padding:"10px 12px",fontSize:14,width:"100%"}}/>
+  );
+}
+function StepSlider({label,value,min,max,step=1,display,onChange,isFloat}){
+  return(
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+        <span style={{color:C.muted,fontSize:12}}>{label}</span>
+        <span className="mono" style={{fontSize:12,color:C.accent}}>{display}</span>
+      </div>
+      <input type="range" className="range-input" min={min} max={max} step={step} value={value}
+        onChange={e=>onChange(isFloat?parseFloat(e.target.value):Number(e.target.value))}/>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:6,gap:6}}>
+        <button onClick={()=>onChange(Math.max(min,isFloat?parseFloat((value-step).toFixed(2)):value-step))}
+          style={{background:C.surface,border:`1px solid ${C.border}`,color:C.text,borderRadius:6,width:28,height:28,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>−</button>
+        <span style={{color:C.muted,fontSize:10,flex:1,textAlign:"center"}}>{min} – {max}</span>
+        <button onClick={()=>onChange(Math.min(max,isFloat?parseFloat((value+step).toFixed(2)):value+step))}
+          style={{background:C.surface,border:`1px solid ${C.border}`,color:C.text,borderRadius:6,width:28,height:28,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>+</button>
+      </div>
+    </div>
+  );
+}
+function ProjBar({saved,interest}){
+  const total=saved+interest;
+  const pct=total>0?(saved/total)*100:100;
+  return(
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:C.muted,marginBottom:4}}>
+        <span>เงินต้น</span><span>ดอกเบี้ย</span>
+      </div>
+      <div style={{height:7,borderRadius:4,overflow:"hidden",display:"flex",background:C.border}}>
+        <div style={{width:`${pct}%`,background:C.income,transition:"width .4s"}}/>
+        <div style={{flex:1,background:C.accent}}/>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
+
+</template>
+<template id="lineman-template">
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lineman Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0a0e1a;
+  --s1:#111827;
+  --s2:#1a2235;
+  --s3:#232f45;
+  --border:#2a3650;
+  --green:#00e5a0;
+  --red:#ff4d6d;
+  --yellow:#ffd60a;
+  --blue:#4dabf7;
+  --purple:#c77dff;
+  --text:#e2e8f5;
+  --muted:#5a6a88;
+  --mono:'Space Mono',monospace;
+  --sans:'Kanit',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;padding:16px 12px 80px;font-weight:400;}
+input,select,button{font-family:var(--sans);}
+input,select{outline:none;-webkit-appearance:none;}
+input:focus,select:focus{border-color:var(--yellow)!important;}
+button:active{transform:scale(0.97);}
+.mono{font-family:var(--mono);}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;}
+/* Tabs */
+.tabs{display:flex;gap:6px;margin-bottom:18px;background:var(--s1);padding:5px;border-radius:12px;border:1px solid var(--border);}
+.tab{flex:1;padding:9px 4px;font-size:13px;border:none;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);font-weight:500;transition:all .2s;}
+.tab.on{background:var(--yellow);color:#0a0e1a;font-weight:700;}
+/* Cards */
+.card{background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:14px;}
+/* Grids */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+/* Range */
+.range{-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:var(--border);width:100%;}
+.range::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--yellow);cursor:pointer;box-shadow:0 0 6px #ffd60a66;}
+.range::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--yellow);border:none;}
+/* Calendar */
+.cal-day{border-radius:8px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:1px solid transparent;font-size:12px;font-weight:500;transition:all .15s;position:relative;user-select:none;}
+.cal-day:active{transform:scale(0.93);}
+.cal-day.work{background:#00e5a022;border-color:#00e5a066;color:var(--green);}
+.cal-day.off{background:#ff4d6d11;border-color:#ff4d6d33;color:var(--muted);}
+.cal-day.empty{opacity:0;}
+.cal-day.today{box-shadow:0 0 0 2px var(--yellow);}
+.cal-day.future{opacity:0.55;}
+/* inputs */
+.inp{background:var(--s3);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:10px 12px;font-size:14px;width:100%;font-family:var(--sans);}
+.inp-sm{background:var(--s3);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:7px 10px;font-size:13px;width:100%;font-family:var(--sans);}
+.lbl{color:var(--muted);font-size:11px;margin-bottom:5px;}
+/* Stat pill */
+.pill{background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+/* btn */
+.btn-y{background:var(--yellow);color:#0a0e1a;border:none;border-radius:9px;padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--sans);}
+.btn-g{background:var(--green);color:#0a0e1a;border:none;border-radius:9px;padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--sans);}
+.btn-s{background:var(--s3);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:10px 14px;font-size:13px;cursor:pointer;font-family:var(--sans);}
+/* modal */
+.modal-bg{position:fixed;inset:0;background:#000c;z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;}
+.modal{background:var(--s2);border:1px solid var(--border);border-radius:16px;padding:20px;width:100%;max-width:400px;}
+/* scrollbar */
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:var(--s1);}::-webkit-scrollbar-thumb{background:var(--border);}
+/* animation */
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.fu{animation:fadeUp .25s ease;}
+/* goal bar */
+.goal-bar-track{height:8px;border-radius:4px;background:var(--border);overflow:hidden;}
+.goal-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--yellow),var(--green));transition:width .5s;}
+/* responsive */
+@media(max-width:480px){
+  .g3{grid-template-columns:1fr 1fr;}
+  .g4{grid-template-columns:repeat(4,1fr);}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useMemo,useEffect,useCallback}=React;
+
+/* ── utils ── */
+const uid=()=>Math.random().toString(36).slice(2,8);
+const fmt=n=>Math.round(n).toLocaleString("th-TH");
+const fmtd=n=>n.toLocaleString("th-TH",{minimumFractionDigits:0,maximumFractionDigits:0});
+function ld(k,fb){try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb;}catch{return fb;}}
+function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+
+const MONTHS=["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+const DAYS=["อา","จ","อ","พ","พฤ","ศ","ส"];
+const WEEK=[0,6]; // weekend
+
+function daysInMonth(y,m){return new Date(y,m+1,0).getDate();}
+function isWeekend(y,m,d){const dow=new Date(y,m,d).getDay();return WEEK.includes(dow);}
+function toKey(y,m,d){return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;}
+
+/* ── App ── */
+function App(){
+  const today=new Date();
+  const[tab,setTab]=useState("cal");
+
+  // Settings
+  const[wdMin,setWdMin]=useState(()=>ld("lm_wdMin",200));
+  const[wdMax,setWdMax]=useState(()=>ld("lm_wdMax",400));
+  const[weMin,setWeMin]=useState(()=>ld("lm_weMin",250));
+  const[weMax,setWeMax]=useState(()=>ld("lm_weMax",500));
+  const[wdTarget,setWdTarget]=useState(()=>ld("lm_wdt",300));
+  const[weTarget,setWeTarget]=useState(()=>ld("lm_wet",400));
+  const[fuelPct,setFuelPct]=useState(()=>ld("lm_fuel",20));
+  const[repairPct,setRepairPct]=useState(()=>ld("lm_repair",5));
+
+  // Calendar state
+  const[calYear,setCalYear]=useState(today.getFullYear());
+  const[calMonth,setCalMonth]=useState(today.getMonth());
+  // dayMap: key -> "work"|"off"
+  const[dayMap,setDayMap]=useState(()=>ld("lm_dayMap",{}));
+
+  // Goal
+  const[goalYear,setGoalYear]=useState(today.getFullYear());
+  const[goalMonth,setGoalMonth]=useState(today.getMonth());
+  const[goalDay,setGoalDay]=useState(today.getDate());
+  const[goalAmt,setGoalAmt]=useState(()=>ld("lm_goalAmt",20000));
+
+  // Projection
+  const[projMonths,setProjMonths]=useState(()=>ld("lm_projM",6));
+  const[projWorkDays,setProjWorkDays]=useState(()=>ld("lm_projWD",22));
+
+  useEffect(()=>sv("lm_wdMin",wdMin),[wdMin]);
+  useEffect(()=>sv("lm_wdMax",wdMax),[wdMax]);
+  useEffect(()=>sv("lm_weMin",weMin),[weMin]);
+  useEffect(()=>sv("lm_weMax",weMax),[weMax]);
+  useEffect(()=>sv("lm_wdt",wdTarget),[wdTarget]);
+  useEffect(()=>sv("lm_wet",weTarget),[weTarget]);
+  useEffect(()=>sv("lm_fuel",fuelPct),[fuelPct]);
+  useEffect(()=>sv("lm_repair",repairPct),[repairPct]);
+  useEffect(()=>sv("lm_dayMap",dayMap),[dayMap]);
+  useEffect(()=>sv("lm_goalAmt",goalAmt),[goalAmt]);
+  useEffect(()=>sv("lm_projM",projMonths),[projMonths]);
+  useEffect(()=>sv("lm_projWD",projWorkDays),[projWorkDays]);
+
+  /* toggle day */
+  function toggleDay(y,m,d){
+    const k=toKey(y,m,d);
+    const cur=dayMap[k];
+    const next=cur==="work"?"off":cur==="off"?null:"work";
+    setDayMap(prev=>{
+      const n={...prev};
+      if(next===null) delete n[k]; else n[k]=next;
+      return n;
+    });
+  }
+
+  /* calendar month stats */
+  const calStats=useMemo(()=>{
+    const total=daysInMonth(calYear,calMonth);
+    let workDays=0,offDays=0,earningMin=0,earningMax=0,earningTarget=0;
+    for(let d=1;d<=total;d++){
+      const k=toKey(calYear,calMonth,d);
+      const state=dayMap[k];
+      if(state==="work"){
+        workDays++;
+        const we=isWeekend(calYear,calMonth,d);
+        earningMin+=we?weMin:wdMin;
+        earningMax+=we?weMax:wdMax;
+        earningTarget+=we?weTarget:wdTarget;
+      } else if(state==="off") offDays++;
+    }
+    const cutPct=(fuelPct+repairPct)/100;
+    return{workDays,offDays,earningMin,earningMax,earningTarget,
+      netMin:earningMin*(1-cutPct),netMax:earningMax*(1-cutPct),netTarget:earningTarget*(1-cutPct),cutPct};
+  },[dayMap,calYear,calMonth,wdMin,wdMax,weMin,weMax,wdTarget,weTarget,fuelPct,repairPct]);
+
+  /* today stats */
+  const todayKey=toKey(today.getFullYear(),today.getMonth(),today.getDate());
+  const todayWorking=dayMap[todayKey]==="work";
+  const todayWe=isWeekend(today.getFullYear(),today.getMonth(),today.getDate());
+  const todayMin=todayWorking?(todayWe?weMin:wdMin):0;
+  const todayMax=todayWorking?(todayWe?weMax:wdMax):0;
+  const todayTarget=todayWorking?(todayWe?weTarget:wdTarget):0;
+  const cutPct=(fuelPct+repairPct)/100;
+
+  /* goal calculation */
+  const goalCalc=useMemo(()=>{
+    const targetDate=new Date(goalYear,goalMonth,goalDay);
+    const now=new Date();
+    const diffDays=Math.max(0,Math.ceil((targetDate-now)/(1000*60*60*24)));
+    // days worked so far this month in current month up to today
+    let earnedSoFar=0;
+    const cm=today.getMonth(),cy=today.getFullYear();
+    for(let d=1;d<=today.getDate();d++){
+      const k=toKey(cy,cm,d);
+      if(dayMap[k]==="work"){
+        const we=isWeekend(cy,cm,d);
+        earnedSoFar+=we?weTarget:wdTarget;
+      }
+    }
+    const netEarned=earnedSoFar*(1-cutPct);
+    const remaining=Math.max(0,goalAmt-netEarned);
+    const daysLeft=diffDays;
+    const neededPerDay=daysLeft>0?remaining/daysLeft:remaining;
+    // recommend: how many work days and earning per day
+    const avgDay=((wdTarget+weTarget)/2)*(1-cutPct);
+    const daysNeeded=avgDay>0?Math.ceil(remaining/avgDay):0;
+    const pct=goalAmt>0?Math.min(100,(netEarned/goalAmt)*100):0;
+    return{netEarned,remaining,daysLeft,neededPerDay,daysNeeded,pct,diffDays};
+  },[goalYear,goalMonth,goalDay,goalAmt,dayMap,wdTarget,weTarget,cutPct,today]);
+
+  /* projection */
+  const projCalc=useMemo(()=>{
+    const avgDaily=((wdTarget+weTarget)/2)*(1-cutPct);
+    const monthly=avgDaily*projWorkDays;
+    const total=monthly*projMonths;
+    return{monthly,total,avgDaily};
+  },[wdTarget,weTarget,cutPct,projWorkDays,projMonths]);
+
+  return(
+    <div style={{maxWidth:720,margin:"0 auto"}}>
+      {/* Header */}
+      <div style={{marginBottom:18,display:"flex",alignItems:"flex-end",justifyContent:"space-between"}}>
+        <div>
+          <div className="tag" style={{color:"var(--yellow)",marginBottom:3}}>🛵 LINEMAN TRACKER</div>
+          <h1 style={{fontSize:22,fontWeight:700,letterSpacing:"-0.3px"}}>แดชบอร์ดวิ่งงาน</h1>
+        </div>
+        <div style={{textAlign:"right"}}>
+          <div style={{fontSize:11,color:"var(--muted)"}}>วันนี้</div>
+          <div className="mono" style={{fontSize:13,color:"var(--yellow)"}}>
+            {today.getDate()} {MONTHS[today.getMonth()]} {today.getFullYear()}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick today bar */}
+      <div className="card fu" style={{marginBottom:14,borderColor:todayWorking?"var(--green)33":"var(--border)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+          <div style={{flex:1,minWidth:160}}>
+            <div className="tag" style={{color:"var(--muted)",marginBottom:2}}>วันนี้ {todayWe?"(วันหยุด)":"(วันธรรมดา)"}</div>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <div style={{width:10,height:10,borderRadius:"50%",background:todayWorking?"var(--green)":"var(--red)",boxShadow:todayWorking?"0 0 8px var(--green)":""}}/>
+              <span style={{fontWeight:600,fontSize:15,color:todayWorking?"var(--green)":"var(--muted)"}}>
+                {todayWorking?"กำลังวิ่งงาน 🛵":"วันหยุด 💤"}
+              </span>
+            </div>
+          </div>
+          {todayWorking&&(
+            <div style={{display:"flex",gap:8}}>
+              <div className="pill" style={{textAlign:"center"}}>
+                <div style={{fontSize:10,color:"var(--muted)"}}>คาดได้ (เป้า)</div>
+                <div className="mono" style={{color:"var(--green)",fontWeight:700,fontSize:15}}>฿{fmt(todayTarget*(1-cutPct))}</div>
+              </div>
+              <div className="pill" style={{textAlign:"center"}}>
+                <div style={{fontSize:10,color:"var(--muted)"}}>ช่วง</div>
+                <div className="mono" style={{color:"var(--blue)",fontSize:12}}>฿{fmt(todayMin*(1-cutPct))}–{fmt(todayMax*(1-cutPct))}</div>
+              </div>
+            </div>
+          )}
+          <button onClick={()=>toggleDay(today.getFullYear(),today.getMonth(),today.getDate())}
+            style={{background:todayWorking?"var(--red)22":"var(--green)22",border:`1px solid ${todayWorking?"var(--red)":"var(--green)"}`,
+            color:todayWorking?"var(--red)":"var(--green)",borderRadius:9,padding:"9px 14px",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:"var(--sans)"}}>
+            {todayWorking?"✕ หยุดวันนี้":"✓ วิ่งวันนี้"}
+          </button>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="tabs">
+        {[["cal","📅 ปฏิทิน"],["set","⚙️ ตั้งค่า"],["goal","🎯 เป้าหมาย"],["proj","🔮 คาดการณ์"]].map(([v,l])=>(
+          <button key={v} className={`tab${tab===v?" on":""}`} onClick={()=>setTab(v)}>{l}</button>
+        ))}
+      </div>
+
+      {/* ── CALENDAR TAB ── */}
+      {tab==="cal"&&<CalTab
+        calYear={calYear} calMonth={calMonth}
+        setCalYear={setCalYear} setCalMonth={setCalMonth}
+        dayMap={dayMap} toggleDay={toggleDay}
+        today={today} calStats={calStats} cutPct={cutPct}
+        wdMin={wdMin} wdMax={wdMax} weMin={weMin} weMax={weMax}
+        wdTarget={wdTarget} weTarget={weTarget}
+      />}
+
+      {/* ── SETTINGS TAB ── */}
+      {tab==="set"&&<SetTab
+        wdMin={wdMin} setWdMin={setWdMin}
+        wdMax={wdMax} setWdMax={setWdMax}
+        weMin={weMin} setWeMin={setWeMin}
+        weMax={weMax} setWeMax={setWeMax}
+        wdTarget={wdTarget} setWdTarget={setWdTarget}
+        weTarget={weTarget} setWeTarget={setWeTarget}
+        fuelPct={fuelPct} setFuelPct={setFuelPct}
+        repairPct={repairPct} setRepairPct={setRepairPct}
+        cutPct={cutPct}
+      />}
+
+      {/* ── GOAL TAB ── */}
+      {tab==="goal"&&<GoalTab
+        goalYear={goalYear} setGoalYear={setGoalYear}
+        goalMonth={goalMonth} setGoalMonth={setGoalMonth}
+        goalDay={goalDay} setGoalDay={setGoalDay}
+        goalAmt={goalAmt} setGoalAmt={setGoalAmt}
+        goalCalc={goalCalc}
+        wdTarget={wdTarget} weTarget={weTarget} cutPct={cutPct}
+      />}
+
+      {/* ── PROJECTION TAB ── */}
+      {tab==="proj"&&<ProjTab
+        projMonths={projMonths} setProjMonths={setProjMonths}
+        projWorkDays={projWorkDays} setProjWorkDays={setProjWorkDays}
+        projCalc={projCalc}
+        fuelPct={fuelPct} repairPct={repairPct} cutPct={cutPct}
+        wdTarget={wdTarget} weTarget={weTarget}
+      />}
+    </div>
+  );
+}
+
+/* ── CALENDAR TAB ── */
+function CalTab({calYear,calMonth,setCalYear,setCalMonth,dayMap,toggleDay,today,calStats,cutPct,wdMin,wdMax,weMin,weMax,wdTarget,weTarget}){
+  const totalDays=daysInMonth(calYear,calMonth);
+  const firstDow=new Date(calYear,calMonth,1).getDay();
+  const cells=[];
+  for(let i=0;i<firstDow;i++) cells.push(null);
+  for(let d=1;d<=totalDays;d++) cells.push(d);
+
+  function prevMonth(){
+    if(calMonth===0){setCalYear(y=>y-1);setCalMonth(11);}
+    else setCalMonth(m=>m-1);
+  }
+  function nextMonth(){
+    if(calMonth===11){setCalYear(y=>y+1);setCalMonth(0);}
+    else setCalMonth(m=>m+1);
+  }
+
+  return(
+    <div className="fu">
+      {/* Month nav */}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+        <button onClick={prevMonth} style={{background:"var(--s3)",border:"1px solid var(--border)",color:"var(--text)",borderRadius:8,width:36,height:36,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+        <div style={{textAlign:"center"}}>
+          <div style={{fontWeight:700,fontSize:18}}>{MONTHS[calMonth]} {calYear}</div>
+          <div style={{fontSize:11,color:"var(--muted)"}}>กด วันที่ = วิ่ง / กดอีกครั้ง = หยุด / กดอีก = ล้าง</div>
+        </div>
+        <button onClick={nextMonth} style={{background:"var(--s3)",border:"1px solid var(--border)",color:"var(--text)",borderRadius:8,width:36,height:36,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
+      </div>
+
+      {/* Day headers */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4,marginBottom:6}}>
+        {DAYS.map((d,i)=>(
+          <div key={d} style={{textAlign:"center",fontSize:11,fontWeight:600,
+            color:i===0||i===6?"var(--yellow)":"var(--muted)",padding:"4px 0"}}>
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4,marginBottom:16}}>
+        {cells.map((d,i)=>{
+          if(!d) return <div key={`e${i}`} className="cal-day empty"/>;
+          const k=toKey(calYear,calMonth,d);
+          const state=dayMap[k];
+          const isToday=d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear();
+          const we=isWeekend(calYear,calMonth,d);
+          const isPast=new Date(calYear,calMonth,d)<new Date(today.getFullYear(),today.getMonth(),today.getDate());
+          const isFuture=new Date(calYear,calMonth,d)>new Date(today.getFullYear(),today.getMonth(),today.getDate());
+          const dayIncome=state==="work"?(we?weTarget:wdTarget)*(1-cutPct):0;
+          return(
+            <div key={d} className={`cal-day${state?" "+state:""}${isToday?" today":""}${isFuture?" future":""}`}
+              onClick={()=>toggleDay(calYear,calMonth,d)}
+              style={{background:state==="work"?"var(--green)18":state==="off"?"var(--red)0d":"var(--s3)",
+                border:`1px solid ${state==="work"?"var(--green)55":state==="off"?"var(--red)33":"var(--border)"}`,
+                opacity:isPast&&!state?0.45:1}}>
+              <span style={{fontSize:13,fontWeight:isToday?700:500,color:we&&!state?"var(--yellow)":state==="work"?"var(--green)":state==="off"?"var(--muted)":"var(--text)"}}>{d}</span>
+              {state==="work"&&<span style={{fontSize:9,color:"var(--green)",lineHeight:1}}>฿{fmt(dayIncome)}</span>}
+              {state==="off"&&<span style={{fontSize:9,color:"var(--muted)"}}>หยุด</span>}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Month summary */}
+      <div className="card" style={{borderColor:"var(--yellow)33"}}>
+        <div className="tag" style={{color:"var(--yellow)",marginBottom:10}}>สรุปเดือน {MONTHS[calMonth]}</div>
+        <div className="g3" style={{marginBottom:10}}>
+          <StatBox label="วันที่วิ่ง" val={`${calStats.workDays} วัน`} color="var(--green)"/>
+          <StatBox label="วันหยุด" val={`${calStats.offDays} วัน`} color="var(--muted)"/>
+          <StatBox label="ยังไม่ระบุ" val={`${daysInMonth(calYear,calMonth)-calStats.workDays-calStats.offDays} วัน`} color="var(--border)"/>
+        </div>
+        {calStats.workDays>0&&<>
+          <div className="g2" style={{marginBottom:8}}>
+            <StatBox label="รายได้เป้า (สุทธิ)" val={`฿${fmt(calStats.netTarget)}`} color="var(--green)" mono/>
+            <StatBox label="ช่วงรายได้สุทธิ" val={`฿${fmt(calStats.netMin)}–${fmt(calStats.netMax)}`} color="var(--blue)" mono small/>
+          </div>
+          <div className="g2">
+            <StatBox label={`ค่าน้ำมัน+ซ่อม (${Math.round(calStats.cutPct*100)}%)`} val={`฿${fmt(calStats.earningTarget*calStats.cutPct)}`} color="var(--red)" mono/>
+            <StatBox label="รายได้ก่อนหัก" val={`฿${fmt(calStats.earningTarget)}`} color="var(--muted)" mono/>
+          </div>
+        </>}
+      </div>
+    </div>
+  );
+}
+
+/* ── SETTINGS TAB ── */
+function SetTab({wdMin,setWdMin,wdMax,setWdMax,weMin,setWeMin,weMax,setWeMax,
+  wdTarget,setWdTarget,weTarget,setWeTarget,fuelPct,setFuelPct,repairPct,setRepairPct,cutPct}){
+  return(
+    <div className="fu" style={{display:"flex",flexDirection:"column",gap:14}}>
+      {/* Weekday */}
+      <div className="card">
+        <div className="tag" style={{color:"var(--blue)",marginBottom:12}}>📦 วันธรรมดา (จ-ศ)</div>
+        <div className="g3" style={{marginBottom:10}}>
+          <Field label="ขั้นต่ำ (฿/วัน)" val={wdMin} set={setWdMin}/>
+          <Field label="สูงสุด (฿/วัน)" val={wdMax} set={setWdMax}/>
+          <Field label="เป้าหมาย (฿/วัน)" val={wdTarget} set={setWdTarget} accent/>
+        </div>
+        <div style={{padding:"10px 12px",background:"var(--s3)",borderRadius:9,fontSize:12,color:"var(--muted)"}}>
+          สุทธิเป้า: <span className="mono" style={{color:"var(--green)",fontWeight:700}}>฿{fmt(wdTarget*(1-cutPct))}</span>
+          <span style={{margin:"0 8px"}}>|</span>
+          ช่วงสุทธิ: <span className="mono" style={{color:"var(--blue)"}}>฿{fmt(wdMin*(1-cutPct))}–{fmt(wdMax*(1-cutPct))}</span>
+        </div>
+      </div>
+      {/* Weekend */}
+      <div className="card">
+        <div className="tag" style={{color:"var(--yellow)",marginBottom:12}}>🌟 วันหยุดสุดสัปดาห์ (ส-อา)</div>
+        <div className="g3" style={{marginBottom:10}}>
+          <Field label="ขั้นต่ำ (฿/วัน)" val={weMin} set={setWeMin}/>
+          <Field label="สูงสุด (฿/วัน)" val={weMax} set={setWeMax}/>
+          <Field label="เป้าหมาย (฿/วัน)" val={weTarget} set={setWeTarget} accent/>
+        </div>
+        <div style={{padding:"10px 12px",background:"var(--s3)",borderRadius:9,fontSize:12,color:"var(--muted)"}}>
+          สุทธิเป้า: <span className="mono" style={{color:"var(--green)",fontWeight:700}}>฿{fmt(weTarget*(1-cutPct))}</span>
+          <span style={{margin:"0 8px"}}>|</span>
+          ช่วงสุทธิ: <span className="mono" style={{color:"var(--blue)"}}>฿{fmt(weMin*(1-cutPct))}–{fmt(weMax*(1-cutPct))}</span>
+        </div>
+      </div>
+      {/* Costs */}
+      <div className="card">
+        <div className="tag" style={{color:"var(--red)",marginBottom:12}}>⛽ ค่าใช้จ่าย (% จากรายได้)</div>
+        <div className="g2" style={{marginBottom:10}}>
+          <div>
+            <div className="lbl">ค่าน้ำมัน (%)</div>
+            <RangeNum val={fuelPct} set={setFuelPct} min={0} max={50}/>
+          </div>
+          <div>
+            <div className="lbl">ค่าซ่อมรถ (%)</div>
+            <RangeNum val={repairPct} set={setRepairPct} min={0} max={30}/>
+          </div>
+        </div>
+        <div style={{padding:"10px 12px",background:"var(--red)11",border:"1px solid var(--red)33",borderRadius:9,fontSize:13}}>
+          รวมหัก: <span className="mono" style={{color:"var(--red)",fontWeight:700}}>{fuelPct+repairPct}%</span>
+          <span style={{color:"var(--muted)",marginLeft:8,fontSize:11}}>จาก ฿{fmt(wdTarget+weTarget)} วันธรรมดา+หยุด → สุทธิ ฿{fmt((wdTarget+weTarget)/2*(1-cutPct))}/วัน (เฉลี่ย)</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── GOAL TAB ── */
+function GoalTab({goalYear,setGoalYear,goalMonth,setGoalMonth,goalDay,setGoalDay,
+  goalAmt,setGoalAmt,goalCalc,wdTarget,weTarget,cutPct}){
+  const today=new Date();
+  const avgNet=((wdTarget+weTarget)/2)*(1-cutPct);
+  return(
+    <div className="fu" style={{display:"flex",flexDirection:"column",gap:14}}>
+      <div className="card">
+        <div className="tag" style={{color:"var(--green)",marginBottom:12}}>🎯 ตั้งเป้าหมาย</div>
+        <div className="g2" style={{marginBottom:10}}>
+          <div style={{gridColumn:"span 2"}}>
+            <div className="lbl">ยอดเงินที่ต้องการ (฿)</div>
+            <input className="inp" type="number" value={goalAmt} onChange={e=>setGoalAmt(parseFloat(e.target.value)||0)} placeholder="20000"/>
+          </div>
+        </div>
+        <div style={{marginBottom:8}}>
+          <div className="lbl">วันที่ต้องการเงิน</div>
+          <div className="g3">
+            <div>
+              <div className="lbl">วันที่</div>
+              <input className="inp-sm" type="number" min="1" max="31" value={goalDay} onChange={e=>setGoalDay(parseInt(e.target.value)||1)}/>
+            </div>
+            <div>
+              <div className="lbl">เดือน</div>
+              <select className="inp-sm" value={goalMonth} onChange={e=>setGoalMonth(parseInt(e.target.value))}>
+                {MONTHS.map((m,i)=><option key={i} value={i}>{m}</option>)}
+              </select>
+            </div>
+            <div>
+              <div className="lbl">ปี</div>
+              <input className="inp-sm" type="number" value={goalYear} onChange={e=>setGoalYear(parseInt(e.target.value)||today.getFullYear())}/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Progress */}
+      <div className="card" style={{borderColor:"var(--green)44"}}>
+        <div className="tag" style={{color:"var(--green)",marginBottom:10}}>📊 ความคืบหน้า</div>
+        <div style={{marginBottom:10}}>
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:6}}>
+            <span style={{color:"var(--muted)"}}>รายได้สุทธิสะสม (เดือนนี้)</span>
+            <span className="mono" style={{color:"var(--green)",fontWeight:700}}>฿{fmt(goalCalc.netEarned)}</span>
+          </div>
+          <div className="goal-bar-track">
+            <div className="goal-bar-fill" style={{width:`${goalCalc.pct}%`}}/>
+          </div>
+          <div style={{textAlign:"right",fontSize:11,color:"var(--muted)",marginTop:4}}>{goalCalc.pct.toFixed(1)}% ของเป้า ฿{fmt(goalAmt)}</div>
+        </div>
+        <div className="g2">
+          <StatBox label="เหลืออีก" val={`฿${fmt(goalCalc.remaining)}`} color="var(--yellow)" mono/>
+          <StatBox label="วันที่เหลือ" val={`${goalCalc.daysLeft} วัน`} color="var(--blue)"/>
+        </div>
+      </div>
+
+      {/* Recommendation */}
+      <div className="card" style={{borderColor:"var(--yellow)44"}}>
+        <div className="tag" style={{color:"var(--yellow)",marginBottom:10}}>💡 แนะนำ</div>
+        {goalCalc.remaining<=0?(
+          <div style={{textAlign:"center",padding:"16px 0"}}>
+            <div style={{fontSize:28,marginBottom:8}}>🎉</div>
+            <div style={{fontWeight:600,color:"var(--green)",fontSize:16}}>ถึงเป้าแล้ว!</div>
+          </div>
+        ):(
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            <div style={{background:"var(--s3)",borderRadius:10,padding:"12px 14px"}}>
+              <div style={{color:"var(--muted)",fontSize:11,marginBottom:4}}>ต้องวิ่งอีกอย่างน้อย</div>
+              <div className="mono" style={{color:"var(--yellow)",fontSize:22,fontWeight:700}}>{goalCalc.daysNeeded} วัน</div>
+              <div style={{color:"var(--muted)",fontSize:11,marginTop:2}}>เฉลี่ยที่ ฿{fmt(avgNet)}/วัน</div>
+            </div>
+            <div style={{background:"var(--s3)",borderRadius:10,padding:"12px 14px"}}>
+              <div style={{color:"var(--muted)",fontSize:11,marginBottom:4}}>หรือต้องได้เฉลี่ย/วัน</div>
+              <div className="mono" style={{color:"var(--green)",fontSize:20,fontWeight:700}}>฿{fmt(goalCalc.neededPerDay)}</div>
+              <div style={{color:"var(--muted)",fontSize:11,marginTop:2}}>ใน {goalCalc.daysLeft} วันที่เหลือ</div>
+            </div>
+            {goalCalc.neededPerDay>avgNet&&(
+              <div style={{background:"var(--red)11",border:"1px solid var(--red)44",borderRadius:10,padding:"10px 14px",fontSize:12,color:"var(--red)"}}>
+                ⚠️ เป้าสูงกว่าเฉลี่ยปกติ — ต้องวิ่งช่วงวันหยุด หรือเพิ่มชั่วโมง
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── PROJECTION TAB ── */
+function ProjTab({projMonths,setProjMonths,projWorkDays,setProjWorkDays,projCalc,
+  fuelPct,repairPct,cutPct,wdTarget,weTarget}){
+  return(
+    <div className="fu" style={{display:"flex",flexDirection:"column",gap:14}}>
+      <div className="card">
+        <div className="tag" style={{color:"var(--purple)",marginBottom:12}}>🔮 ตั้งค่าคาดการณ์</div>
+        <div className="g2" style={{marginBottom:14}}>
+          <div>
+            <div className="lbl">วันวิ่งต่อเดือน (วัน)</div>
+            <RangeNum val={projWorkDays} set={setProjWorkDays} min={1} max={31}/>
+          </div>
+          <div>
+            <div className="lbl">จำนวนเดือน</div>
+            <RangeNum val={projMonths} set={setProjMonths} min={1} max={36}/>
+          </div>
+        </div>
+        <div style={{padding:"10px 12px",background:"var(--s3)",borderRadius:9,fontSize:12,color:"var(--muted)"}}>
+          รายได้สุทธิเฉลี่ย/วัน: <span className="mono" style={{color:"var(--yellow)",fontWeight:700}}>฿{fmt(projCalc.avgDaily)}</span>
+          <span style={{margin:"0 6px"}}>×</span>{projWorkDays} วัน
+        </div>
+      </div>
+
+      {/* Per month */}
+      <div className="card" style={{borderColor:"var(--purple)44"}}>
+        <div className="tag" style={{color:"var(--purple)",marginBottom:10}}>รายได้สุทธิ/เดือน</div>
+        <div className="mono" style={{fontSize:28,fontWeight:700,color:"var(--purple)",marginBottom:4}}>฿{fmt(projCalc.monthly)}</div>
+        <div style={{fontSize:12,color:"var(--muted)"}}>ก่อนหัก ≈ ฿{fmt(projCalc.monthly/(1-cutPct))} | หัก {Math.round(cutPct*100)}% = ฿{fmt(projCalc.monthly/(1-cutPct)*cutPct)}</div>
+      </div>
+
+      {/* Timeline */}
+      <div className="card">
+        <div className="tag" style={{color:"var(--green)",marginBottom:10}}>เงินสะสมคาดการณ์</div>
+        <div className="mono" style={{fontSize:26,fontWeight:700,color:"var(--green)",marginBottom:6}}>฿{fmt(projCalc.total)}</div>
+        <div style={{fontSize:12,color:"var(--muted)",marginBottom:14}}>ใน {projMonths} เดือน ({projMonths*projWorkDays} วันทำงาน)</div>
+        {/* Mini timeline bars */}
+        <div style={{display:"flex",flexDirection:"column",gap:4}}>
+          {Array.from({length:Math.min(projMonths,12)},(_,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:8}}>
+              <div style={{width:32,fontSize:10,color:"var(--muted)",textAlign:"right",flexShrink:0}}>ด.{i+1}</div>
+              <div style={{flex:1,height:6,background:"var(--border)",borderRadius:3,overflow:"hidden"}}>
+                <div style={{width:`${((i+1)/projMonths)*100}%`,height:"100%",background:"linear-gradient(90deg,var(--purple),var(--green))",borderRadius:3}}/>
+              </div>
+              <div className="mono" style={{fontSize:10,color:"var(--green)",width:70,textAlign:"right",flexShrink:0}}>
+                ฿{fmt(projCalc.monthly*(i+1))}
+              </div>
+            </div>
+          ))}
+          {projMonths>12&&<div style={{fontSize:11,color:"var(--muted)",textAlign:"center",padding:"4px 0"}}>... แสดง 12 เดือนแรก</div>}
+        </div>
+      </div>
+
+      {/* Cost breakdown */}
+      <div className="card">
+        <div className="tag" style={{color:"var(--red)",marginBottom:10}}>⛽ ค่าใช้จ่ายต่อเดือน (คาดการณ์)</div>
+        <div className="g2">
+          <StatBox label={`ค่าน้ำมัน (${fuelPct}%)`} val={`฿${fmt(projCalc.monthly/(1-cutPct)*fuelPct/100)}`} color="var(--red)" mono/>
+          <StatBox label={`ค่าซ่อม (${repairPct}%)`} val={`฿${fmt(projCalc.monthly/(1-cutPct)*repairPct/100)}`} color="var(--yellow)" mono/>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── small components ── */
+function StatBox({label,val,color,mono,small,big}){
+  return(
+    <div className="pill">
+      <div style={{color:"var(--muted)",fontSize:10,marginBottom:3}}>{label}</div>
+      <div className={mono?"mono":""} style={{color,fontWeight:700,fontSize:small?12:big?20:14,wordBreak:"break-all"}}>{val}</div>
+    </div>
+  );
+}
+function Field({label,val,set,accent}){
+  return(
+    <div>
+      <div className="lbl">{label}</div>
+      <input className="inp-sm" type="number" min="0" value={val} onChange={e=>set(parseFloat(e.target.value)||0)}
+        style={{borderColor:accent?"var(--yellow)":"var(--border)",color:accent?"var(--yellow)":"var(--text)"}}/>
+    </div>
+  );
+}
+function RangeNum({val,set,min,max,step=1}){
+  return(
+    <div>
+      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
+        <button onClick={()=>set(v=>Math.max(min,v-step))}
+          style={{background:"var(--s3)",border:"1px solid var(--border)",color:"var(--text)",borderRadius:6,width:28,height:28,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--sans)"}}>−</button>
+        <span className="mono" style={{flex:1,textAlign:"center",fontSize:15,fontWeight:700,color:"var(--yellow)"}}>{val}</span>
+        <button onClick={()=>set(v=>Math.min(max,v+step))}
+          style={{background:"var(--s3)",border:"1px solid var(--border)",color:"var(--text)",borderRadius:6,width:28,height:28,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--sans)"}}>+</button>
+      </div>
+      <input type="range" className="range" min={min} max={max} step={step} value={val} onChange={e=>set(parseFloat(e.target.value))}/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
+
+</template>
+<script>
+(function(){
+ const frame=document.getElementById('appFrame');
+ const buttons=Array.from(document.querySelectorAll('.nav-btn'));
+ const title=document.getElementById('pageTitle');
+ const labels={finance:'วางแผนการเงิน',lineman:'แดชบอร์ดวิ่งงาน Lineman'};
+ function getTemplate(page){const id=page==='lineman'?'lineman-template':'finance-template';return document.getElementById(id).innerHTML.trim();}
+ function setPage(page){buttons.forEach(btn=>btn.classList.toggle('active',btn.dataset.page===page));title.textContent=labels[page]||labels.finance;frame.srcdoc=getTemplate(page);try{localStorage.setItem('all_dashboard_page',page);}catch(e){}}
+ buttons.forEach(btn=>btn.addEventListener('click',()=>setPage(btn.dataset.page)));
+ let saved='finance';try{saved=localStorage.getItem('all_dashboard_page')||'finance';}catch(e){}
+ setPage(saved==='lineman'?'lineman':'finance');
+})();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./service-worker.js").catch(function (err) {
+      console.warn("Service worker registration failed:", err);
+    });
+  });
+}
+</script>
+</body>
+</html>
