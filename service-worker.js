@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dashboard-pwa-firebase-v3';
+const CACHE_NAME = 'dashboard-pwa-firebase-v5';
 const CORE_ASSETS = [
   './',
   './index.html',

@@ -6,7 +6,7 @@
 <title>Finance & Lineman Dashboard</title>
 <meta name="theme-color" content="#111827"/>
 <meta name="description" content="All-in-one Finance Planner and Lineman Tracker"/>
-<meta name="app-version" content="firebase-sync-v4"/>
+<meta name="app-version" content="firebase-sync-v5"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -71,6 +71,18 @@ button:active{opacity:0.8;}
 .list-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .proj-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .res-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.chart-card{margin-bottom:14px;}
+.bar-track{height:10px;border-radius:999px;background:#2a3444;overflow:hidden;}
+.bar-fill{height:100%;border-radius:999px;transition:width .35s ease;}
+.mini-chart{display:flex;align-items:flex-end;gap:5px;height:120px;padding:12px 4px 4px;border-radius:10px;background:#161b22;border:1px solid #2a3444;overflow:hidden;}
+.mini-bar-wrap{flex:1;min-width:5px;display:flex;align-items:flex-end;height:100%;}
+.mini-bar{width:100%;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#ffc857,#3dffa0);min-height:2px;}
+body[data-theme="light"]{background:#f5f7fb;color:#172033;}
+body[data-theme="light"] .card, body[data-theme="light"] .modal{background:#ffffff;border-color:#d7dfec;}
+body[data-theme="light"] .surface, body[data-theme="light"] .tab-btn{background:#eef3f9;border-color:#d7dfec;}
+body[data-theme="light"] .tab-btn.active{background:#fff3d3;border-color:#d99a00;color:#b37200;}
+body[data-theme="light"] input, body[data-theme="light"] select, body[data-theme="light"] textarea{background:#f8fafc!important;color:#172033!important;border-color:#d7dfec!important;}
+body[data-theme="light"] .bar-track, body[data-theme="light"] .mini-chart{background:#eef3f9;border-color:#d7dfec;}
 @media(max-width:500px){
   body{padding-bottom:calc(150px + env(safe-area-inset-bottom));}
   .sum-grid{grid-template-columns:1fr 1fr;}.sum-grid>:last-child{grid-column:span 2;}
@@ -111,8 +123,11 @@ function calcTax(annualNet){
   return tax/12;
 }
 
-const C={bg:"#0d1117",surface:"#161b22",card:"#1c2230",border:"#2a3444",
-         income:"#3dffa0",expense:"#ff5e7e",accent:"#ffc857",text:"#e8edf5",muted:"#6b7a99"};
+const THEMES={
+  dark:{bg:"#0d1117",surface:"#161b22",card:"#1c2230",border:"#2a3444",income:"#3dffa0",expense:"#ff5e7e",accent:"#ffc857",text:"#e8edf5",muted:"#6b7a99"},
+  light:{bg:"#f5f7fb",surface:"#eef3f9",card:"#ffffff",border:"#d7dfec",income:"#11945f",expense:"#d9365f",accent:"#d99a00",text:"#172033",muted:"#667085"}
+};
+let C=THEMES.dark;
 
 /* ────────────────── DEFAULTS ────────────────── */
 const DEF_ITEMS=[
@@ -132,7 +147,9 @@ function App(){
   const[projMode,setProjMode]=useState(()=>load("fp4_pmode","compound"));
   const[investAmt,setInvestAmt]=useState(()=>load("fp4_inv",0));
   const[investRate,setInvestRate]=useState(()=>load("fp4_invr",5));
-  const[showSSO,setShowSSO]=useState(()=>load("fp4_sso",false));
+  const[theme,setTheme]=useState(()=>load("fp4_theme","dark"));
+  C=THEMES[theme]||THEMES.dark;
+  const showSSO=false;
 
   useEffect(()=>save("fp4_items",items),[items]);
   useEffect(()=>save("fp4_pm",projMonths),[projMonths]);
@@ -140,7 +157,7 @@ function App(){
   useEffect(()=>save("fp4_pmode",projMode),[projMode]);
   useEffect(()=>save("fp4_inv",investAmt),[investAmt]);
   useEffect(()=>save("fp4_invr",investRate),[investRate]);
-  useEffect(()=>save("fp4_sso",showSSO),[showSSO]);
+  useEffect(()=>{save("fp4_theme",theme);document.body.setAttribute("data-theme",theme);},[theme]);
 
   /* effective monthly amount for an item at month offset m (0-based) */
   function effectiveAt(item,m){
@@ -167,7 +184,7 @@ function App(){
   const sso=calcSSO(salary);
   const annualNet=(salary-sso)*12;
   const monthlyTax=calcTax(annualNet);
-  const netAfterDeduct=net-(showSSO?sso+monthlyTax:0);
+  const netAfterDeduct=net;
 
   /* sorted display */
   const sorted=useCallback((list)=>{
@@ -198,6 +215,10 @@ function App(){
     setModal(null);
   }
   function removeItem(id){setItems(prev=>prev.filter(i=>i.id!==id));}
+  function duplicateItem(item){
+    const copy={...item,id:uid(),label:`${item.label} (copy)`,subItems:(item.subItems||[]).map(s=>({...s,id:uid()}))};
+    setItems(prev=>{const idx=prev.findIndex(i=>i.id===item.id);const arr=[...prev];arr.splice(idx+1,0,copy);return arr;});
+  }
 
   /* projection timeline */
   const projData=useMemo(()=>{
@@ -207,14 +228,14 @@ function App(){
     for(let m=0;m<projMonths;m++){
       const inc=items.filter(i=>i.type==="income").reduce((s,i)=>s+effectiveAt(i,m),0);
       const exp=items.filter(i=>i.type==="expense").reduce((s,i)=>s+effectiveAt(i,m),0);
-      const deduct=showSSO?sso+monthlyTax:0;
+      const deduct=0;
       const save_=Math.max(0,inc-exp-deduct);
       if(projMode==="compound"&&r>0) cum=(cum+save_)*(1+r);
       else cum+=save_+(projMode==="compound"?0:save_*r*m);
       months.push({m,inc,exp,save_,cum});
     }
     return months;
-  },[items,projMonths,projRate,projMode,showSSO,sso,monthlyTax]);
+  },[items,projMonths,projRate,projMode]);
 
   const finalCum=projData.length?projData[projData.length-1].cum:0;
   const totalSaved=projData.reduce((s,d)=>s+d.save_,0);
@@ -229,15 +250,30 @@ function App(){
 
   const grandTotal=finalCum+investFuture;
 
+  const investData=useMemo(()=>{
+    const r=investRate/100/12;
+    return Array.from({length:projMonths},(_,i)=>{
+      const n=i+1;
+      if(r>0) return investAmt*Math.pow(1+r,n)+investAmt*((Math.pow(1+r,n)-1)/r);
+      return investAmt*(1+n);
+    });
+  },[investAmt,investRate,projMonths]);
+  const projectionChartData=projData.map((d,i)=>({m:i+1,save:d.cum,invest:investData[i]||0,total:d.cum+(investData[i]||0)}));
+
   const yrs=Math.floor(projMonths/12),mos=projMonths%12;
   const dur=[yrs>0?`${yrs} ปี`:"",mos>0?`${mos} เดือน`:""].filter(Boolean).join(" ")||"0 เดือน";
 
   return(
     <div style={{maxWidth:740,margin:"0 auto"}}>
       {/* Header */}
-      <div style={{marginBottom:20}}>
-        <div className="tag" style={{color:C.accent,marginBottom:4}}>PERSONAL FINANCE PLANNER</div>
-        <h1 style={{fontSize:22,fontWeight:600}}>วางแผนการเงิน</h1>
+      <div style={{marginBottom:20,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
+        <div>
+          <div className="tag" style={{color:C.accent,marginBottom:4}}>PERSONAL FINANCE PLANNER</div>
+          <h1 style={{fontSize:22,fontWeight:600}}>วางแผนการเงิน</h1>
+        </div>
+        <button onClick={()=>setTheme(t=>t==="dark"?"light":"dark")} style={{background:C.surface,border:`1px solid ${C.border}`,color:C.text,borderRadius:9,padding:"8px 11px",fontSize:12,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}}>
+          {theme==="dark"?"☀️ Light":"🌙 Dark"}
+        </button>
       </div>
 
       {/* Tabs */}
@@ -253,7 +289,7 @@ function App(){
           {[
             {label:"รายรับ/เดือน",val:totalIncome,color:C.income,sign:"+"},
             {label:"รายจ่าย/เดือน",val:totalExpense,color:C.expense,sign:"−"},
-            {label:showSSO?"คงเหลือ (หลังหัก SSO+ภาษี)":"คงเหลือ/เดือน",val:Math.abs(netAfterDeduct),color:netAfterDeduct>=0?C.income:C.expense,sign:netAfterDeduct>=0?"+":"−"},
+            {label:"คงเหลือ/เดือน",val:Math.abs(netAfterDeduct),color:netAfterDeduct>=0?C.income:C.expense,sign:netAfterDeduct>=0?"+":"−"},
           ].map(s=>(
             <div key={s.label} className="card" style={{borderColor:s.color+"33"}}>
               <div style={{color:C.muted,fontSize:11,marginBottom:4}}>{s.label}</div>
@@ -262,23 +298,7 @@ function App(){
           ))}
         </div>
 
-        {/* SSO toggle + info */}
-        <div className="card" style={{marginBottom:14,padding:"10px 14px"}}>
-          <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-            <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",userSelect:"none"}}>
-              <div onClick={()=>setShowSSO(v=>!v)} style={{width:36,height:20,borderRadius:10,background:showSSO?C.accent:C.border,position:"relative",transition:"background .2s",flexShrink:0}}>
-                <div style={{position:"absolute",top:3,left:showSSO?18:3,width:14,height:14,borderRadius:"50%",background:"#fff",transition:"left .2s"}}/>
-              </div>
-              <span style={{fontSize:13}}>หักประกันสังคม + ภาษีเงินได้ <span style={{color:C.muted,fontSize:11}}>(จากเงินเดือน)</span></span>
-            </label>
-            {showSSO&&salary>0&&(
-              <div style={{display:"flex",gap:8,flexWrap:"wrap",marginLeft:"auto"}}>
-                <span className="chip" style={{background:C.expense+"22",color:C.expense}}>SSO ฿{fmt(sso)}/เดือน</span>
-                <span className="chip" style={{background:C.expense+"22",color:C.expense}}>ภาษี ≈฿{fmt(monthlyTax)}/เดือน</span>
-              </div>
-            )}
-          </div>
-        </div>
+        <FinanceInsight items={items} totalIncome={totalIncome} totalExpense={totalExpense} net={net} effectiveAt={effectiveAt}/>
 
         {/* Sort controls */}
         <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10,flexWrap:"wrap"}}>
@@ -308,6 +328,7 @@ function App(){
                 {sorted(items.filter(i=>i.type===type)).map(item=>(
                   <ItemRow key={item.id} item={item} type={type} effectiveAt={effectiveAt}
                     onEdit={()=>setModal({mode:"edit",item:{...item,subItems:item.subItems||[]}})}
+                    onDuplicate={()=>duplicateItem(item)}
                     onRemove={()=>removeItem(item.id)}
                     onDragStart={sortMode==="manual"?onDragStart:null}
                     onDrop={sortMode==="manual"?onDrop:null}
@@ -363,6 +384,8 @@ function App(){
           <div style={{color:C.muted,fontSize:11,marginTop:8}}>* คำนวณจากรายได้-รายจ่ายจริงแต่ละเดือน (รวมรายการที่มีวันหมด)</div>
         </div>
 
+        <ProjectionTimeline data={projectionChartData}/>
+
         {/* Investment box */}
         <div className="card" style={{marginBottom:14,borderColor:C.accent+"44"}}>
           <div style={{fontWeight:600,fontSize:14,marginBottom:12}}>📊 เงินลงทุน (แยกต่างหาก)</div>
@@ -393,8 +416,67 @@ function App(){
   );
 }
 
+
+function FinanceInsight({items,totalIncome,totalExpense,net,effectiveAt}){
+  const max=Math.max(totalIncome,totalExpense,1);
+  const expenses=items.filter(i=>i.type==="expense").map(i=>({...i,eff:effectiveAt(i,0)})).sort((a,b)=>b.eff-a.eff);
+  const top=expenses[0];
+  const ratio=totalIncome>0?(totalExpense/totalIncome)*100:0;
+  return(
+    <div className="card chart-card" style={{borderColor:ratio>80?C.expense+"55":C.accent+"44"}}>
+      <div style={{fontWeight:600,fontSize:14,marginBottom:12}}>📊 ภาพรวมรายรับ vs รายจ่าย</div>
+      <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:12}}>
+        <ChartRow label="รายรับ" value={totalIncome} max={max} color={C.income}/>
+        <ChartRow label="รายจ่าย" value={totalExpense} max={max} color={C.expense}/>
+      </div>
+      <div style={{background:C.surface,border:`1px solid ${top?C.expense+"44":C.border}`,borderRadius:10,padding:"11px 12px"}}>
+        <div style={{color:C.muted,fontSize:11,marginBottom:5}}>คำแนะนำ</div>
+        {top?(
+          <div style={{fontSize:13,lineHeight:1.55}}>
+            หนี้/รายจ่ายที่ควร prioritize ตอนนี้คือ <b style={{color:C.expense}}>{top.label}</b> ยอดประมาณ <span className="mono" style={{color:C.expense,fontWeight:700}}>฿{fmt(top.eff)}</span>/เดือน
+            {ratio>80?" เพราะรายจ่ายรวมสูงกว่า 80% ของรายรับ ควรลดหรือรีไฟแนนซ์รายการใหญ่ก่อน":" ลองเริ่มจากรายการที่ใหญ่ที่สุดก่อน จะเห็นผลเร็วสุด"}
+          </div>
+        ):(<div style={{fontSize:13,color:C.muted}}>ยังไม่มีรายจ่ายให้วิเคราะห์</div>)}
+      </div>
+    </div>
+  );
+}
+function ChartRow({label,value,max,color}){
+  const pct=Math.min(100,(value/max)*100);
+  return(
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:5}}>
+        <span style={{color:C.muted}}>{label}</span>
+        <span className="mono" style={{color,fontWeight:700}}>฿{fmt(value)}</span>
+      </div>
+      <div className="bar-track"><div className="bar-fill" style={{width:`${pct}%`,background:color}}/></div>
+    </div>
+  );
+}
+function ProjectionTimeline({data}){
+  const shown=data.slice(0,Math.min(data.length,18));
+  const max=Math.max(...shown.map(d=>d.total),1);
+  return(
+    <div className="card chart-card" style={{borderColor:C.accent+"44"}}>
+      <div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"baseline",marginBottom:10}}>
+        <div style={{fontWeight:600,fontSize:14}}>📈 กราฟเงินรวมรายเดือน</div>
+        <div style={{fontSize:11,color:C.muted}}>แสดง {shown.length} เดือนแรก</div>
+      </div>
+      <div className="mini-chart">
+        {shown.map(d=><div key={d.m} className="mini-bar-wrap" title={`เดือน ${d.m}: ฿${fmt(d.total)}`}>
+          <div className="mini-bar" style={{height:`${Math.max(2,(d.total/max)*100)}%`}}/>
+        </div>)}
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:C.muted,marginTop:8}}>
+        <span>เดือน 1</span>
+        <span className="mono" style={{color:C.income,fontWeight:700}}>ปลายกราฟ ฿{fmt(shown.length?shown[shown.length-1].total:0)}</span>
+      </div>
+    </div>
+  );
+}
+
 /* ────────────────── ITEM ROW ────────────────── */
-function ItemRow({item,type,effectiveAt,onEdit,onRemove,onDragStart,onDrop}){
+function ItemRow({item,type,effectiveAt,onEdit,onDuplicate,onRemove,onDragStart,onDrop}){
   const amt=effectiveAt(item,0);
   const hasExpiry=item.months!=null;
   const hasDays=item.daysPerMonth!=null;
@@ -409,7 +491,6 @@ function ItemRow({item,type,effectiveAt,onEdit,onRemove,onDragStart,onDrop}){
       {onDragStart&&<span className="drag-handle">⠿</span>}
       <div style={{flex:1,minWidth:0}}>
         <div style={{fontSize:13,fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.label}
-          {item.isSalary&&<span className="chip" style={{marginLeft:6,background:C.accent+"22",color:C.accent}}>เงินเดือน</span>}
         </div>
         <div style={{display:"flex",gap:6,marginTop:3,flexWrap:"wrap"}}>
           {hasDays&&<span className="chip" style={{background:"#ffffff11",color:C.muted}}>{item.daysPerMonth} วัน × ฿{fmt(item.amount)}</span>}
@@ -418,6 +499,7 @@ function ItemRow({item,type,effectiveAt,onEdit,onRemove,onDragStart,onDrop}){
         </div>
       </div>
       <div className="mono" style={{color,fontSize:13,fontWeight:600,flexShrink:0}}>{type==="income"?"+":"−"}฿{fmt(amt)}</div>
+      <button className="icon-btn" onClick={onDuplicate} title="Duplicate">⧉</button>
       <button className="icon-btn" onClick={onEdit} title="แก้ไข">✏️</button>
       <button className="icon-btn" onClick={onRemove} style={{color:C.expense}} title="ลบ">×</button>
     </div>
@@ -477,13 +559,6 @@ function ItemModal({modal,onSave,onClose}){
           <Label>ชื่อรายการ</Label>
           <input style={inp} value={item.label} onChange={e=>set("label",e.target.value)} placeholder="เช่น ค่าไฟ, ขับ Grab"/>
         </div>
-
-        {/* Salary toggle */}
-        {item.type==="income"&&(
-          <div style={{marginBottom:12}}>
-            <Toggle label="เป็นเงินเดือน (ใช้คำนวณ SSO + ภาษี)" value={item.isSalary} onChange={v=>set("isSalary",v)}/>
-          </div>
-        )}
 
         {/* Days mode */}
         <div style={{marginBottom:12}}>
@@ -1304,7 +1379,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 
   const SYNC_KEYS = [
     "all_dashboard_page",
-    "fp4_items","fp4_pm","fp4_pr","fp4_pmode","fp4_inv","fp4_invr","fp4_sso",
+    "fp4_items","fp4_pm","fp4_pr","fp4_pmode","fp4_inv","fp4_invr","fp4_sso","fp4_theme",
     "lm_wdMin","lm_wdMax","lm_weMin","lm_weMax","lm_wdt","lm_wet","lm_fuel","lm_repair","lm_dayMap","lm_goalAmt","lm_projM","lm_projWD"
   ];
 
@@ -1321,7 +1396,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
   function collectState(){
     const data={};
     SYNC_KEYS.forEach(k=>{ const v=localStorage.getItem(k); if(v!==null) data[k]=v; });
-    return { data, updatedAt: Date.now(), appVersion: "firebase-sync-v3" };
+    return { data, updatedAt: Date.now(), appVersion: "firebase-sync-v5" };
   }
   function hashState(state){ return JSON.stringify(state.data||{}); }
   function applyState(state, opts={}){
